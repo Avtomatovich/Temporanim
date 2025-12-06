@@ -1,45 +1,37 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#pragma once
 
 #include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
+#include "utils/scenedata.h"
 
-class Camera
-{
+class Camera {
 public:
-    Camera() {}
+    Camera() = default;
+    Camera(const SceneCameraData &data, int width, int height);
 
-    Camera(glm::vec3 pos, glm::vec3 look, glm::vec3 up,
-           float aspectRatio,
-           float heightAngle,
-           float near, float far);
+    glm::mat4 getViewMatrix() const;
+    glm::mat4 getProjMatrix() const;
 
-    void setView(const glm::vec3& pos,
-                 const glm::vec3& look,
-                 const glm::vec3& up);
+    glm::vec3 getPosition() const { return glm::vec3(m_pos); }
+    void setAspect(float a) { m_aspect = a; }
 
-    void setAspectRatio(float aspectRatio);
+    // movement
+    void moveForward(float amt);   // along look
+    void moveRight(float amt);     // along right = cross(look, up)
+    void moveUp(float amt);        // along world up (0,1,0)
 
-    const glm::mat4& getView() const;
-
-    const glm::mat4& getProj() const;
-
-    const glm::vec3& getPos() const;
-
-    void perspective(float near, float far);    
+    // rotation
+    void rotate(float dx, float dy);
 
 private:
-    glm::mat4 m_view;
-    glm::mat4 m_proj;
+    glm::vec4 m_pos;
+    glm::vec4 m_look;
+    glm::vec4 m_up;
 
-    float m_aspectRatio;
     float m_heightAngle;
-    float m_widthAngle;
+    float m_aspect;
 
-    float m_near;
-    float m_far;
+    // orthonormal basis
+    glm::vec3 m_u, m_v, m_w;
 
-    glm::vec3 m_pos;
+    void updateBasis();
 };
-
-#endif // CAMERA_H

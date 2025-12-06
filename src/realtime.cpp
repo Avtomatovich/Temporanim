@@ -1,16 +1,22 @@
 #include "realtime.h"
+#include "utils/shaderloader.h"
+
 
 #include <QCoreApplication>
 #include <QMouseEvent>
 #include <QKeyEvent>
-#include <QDir>
 #include <iostream>
 #include "settings.h"
-#include "utils/shaderloader.h"
-#include "utils/transform.h"
-#include "utils/debug.h"
+#include <glm/gtx/transform.hpp>
 
-using namespace Debug;
+static int lightTypeToInt(LightType t) {
+    switch (t) {
+    case LightType::LIGHT_POINT:       return 0;
+    case LightType::LIGHT_DIRECTIONAL: return 1;
+    case LightType::LIGHT_SPOT:        return 2;
+    default:                           return 0;
+    }
+}
 
 // ================== Rendering the Scene!
 
@@ -28,26 +34,25 @@ Realtime::Realtime(QWidget *parent)
     m_keyMap[Qt::Key_Control] = false;
     m_keyMap[Qt::Key_Space]   = false;
 
-    // Animation buttons
-    m_keyMap[Qt::Key_P]       = false;
-    m_keyMap[Qt::Key_Left]    = false;
-    m_keyMap[Qt::Key_Right]   = false;
-
-    // Normal map button
-    m_keyMap[Qt::Key_N]       = false;
+    // If you must use this function, do not edit anything above this
 }
 
 void Realtime::finish() {
     killTimer(m_timer);
     this->makeCurrent();
 
-    // Delete VBOs and VAOs if scene exists
-    if (m_scene.has_value()) m_scene->clean();
+    // Students: anything requiring OpenGL calls when the program exits should be done here
+    if (m_cube_vao)     glDeleteVertexArrays(1, &m_cube_vao);
+    if (m_sphere_vao)   glDeleteVertexArrays(1, &m_sphere_vao);
+    if (m_cylinder_vao) glDeleteVertexArrays(1, &m_cylinder_vao);
+    if (m_cone_vao)     glDeleteVertexArrays(1, &m_cone_vao);
 
-    // Delete shader programs
-    for (GLuint m_shader: m_shaders) {
-        glDeleteProgram(m_shader);
-    }
+    if (m_cube_vbo)     glDeleteBuffers(1, &m_cube_vbo);
+    if (m_sphere_vbo)   glDeleteBuffers(1, &m_sphere_vbo);
+    if (m_cylinder_vbo) glDeleteBuffers(1, &m_cylinder_vbo);
+    if (m_cone_vbo)     glDeleteBuffers(1, &m_cone_vbo);
+
+    if (m_shader)       glDeleteProgram(m_shader);
 
     this->doneCurrent();
 }
@@ -67,6 +72,8 @@ void Realtime::initializeGL() {
     }
     std::cout << "Initialized GL: Version " << glewGetString(GLEW_VERSION) << std::endl;
 
+    std::cout << "[DEBUG] GLEW init complete" << std::endl;
+
     // Allows OpenGL to draw objects appropriately on top of one another
     glEnable(GL_DEPTH_TEST);
     // Tells OpenGL to only draw the front face
@@ -74,81 +81,201 @@ void Realtime::initializeGL() {
     // Tells OpenGL how big the screen is
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
 
-    // Fetch shader directory
-    QDir dir("./resources/shaders");
+    // Students: anything requiring OpenGL calls when the program starts should be done here
 
-    // Exit if shader directory does not exist or is empty
-    if (!dir.exists() || dir.isEmpty()) {
-        throw std::runtime_error("Invalid shader directory.");
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+
+    try {
+        m_shader = ShaderLoader::createShaderProgram(":/resources/shaders/default.vert",":/resources/shaders/default.frag");
+    }
+    catch (const std::runtime_error &e) {
+        std::cerr << "Shader error: " << e.what() << std::endl;
+        m_shader = 0;
     }
 
-    // Fetch list of directory entries
-    QFileInfoList fileInfoList = dir.entryInfoList();
+    shapeSetup();
 
-    // Init temp shader file base name
-    QString prevName = "";
-
-    for (int i = 0; i < fileInfoList.size(); ++i) {
-        const QFileInfo& fileInfo = fileInfoList.at(i);
-        if (fileInfo.isFile()) {
-            // Get current file base name
-            QString currName = fileInfo.completeBaseName();
-
-            // Skip if shader has been processed
-            if (currName == prevName) continue;
-
-            // Fetch full current path without file extension
-            QString path = dir.filePath(currName);
-
-            // Fetch shader paths
-            QFileInfo vertexPath(path + ".vert");
-            QFileInfo fragmentPath(path + ".frag");
-
-            // Exit if vertex/fragment shader does not exist
-            if (!vertexPath.exists()) {
-                throw std::runtime_error("Missing vertex shader: " + vertexPath.filePath().toStdString());
-            }
-            if (!fragmentPath.exists()) {
-                throw std::runtime_error("Missing fragment shader: " + fragmentPath.filePath().toStdString());
-            }
-
-            // Create shader program
-            m_shaders.push_back(ShaderLoader::createShaderProgram(
-                vertexPath.filePath().toStdString().c_str(),
-                fragmentPath.filePath().toStdString().c_str()
-            ));
-
-            // Update processed shader name
-            prevName = currName;
-        }
+    if (!settings.sceneFilePath.empty() &&
+        SceneParser::parse(settings.sceneFilePath, m_renderData))
+    {
+        m_camera = Camera(m_renderData.cameraData,width()*m_devicePixelRatio,height()*m_devicePixelRatio);
+    }
+    else {
+        SceneCameraData cam{};
+        cam.pos = glm::vec4(0,0,5,1);
+        cam.look = glm::vec4(0,0,-1,0);
+        cam.up = glm::vec4(0,1,0,0);
+        cam.heightAngle = glm::radians(45.f);
+        m_camera = Camera(cam,width()*m_devicePixelRatio, height()*m_devicePixelRatio);
     }
 
-    glErrorCheck();
+    isInitialized = true;
 }
 
-void Realtime::paintGL() {
-    if (!m_scene.has_value()) return;
+bool Realtime::sceneIsReady() const {
+    return isInitialized &&
+           !m_renderData.shapes.empty();
+}
 
-    // Clear screen
+void Realtime::VBOVAO(GLuint &vbo, GLuint &vao, std::vector<float> &data) {
+
+    if (data.empty()) return;
+
+    if (vao == 0) glGenVertexArrays(1, &vao);
+    if (vbo == 0) glGenBuffers(1, &vbo);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(float), data.data(),GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,6*sizeof(float), (void*)(3*sizeof(float)));
+
+    glBindVertexArray(0);
+}
+
+void Realtime::shapeSetup()
+{
+    int p1 = settings.shapeParameter1;
+    int p2 = settings.shapeParameter2;
+
+    m_cube.updateParams(p1);
+    m_cubeData = m_cube.getVertexData();
+    VBOVAO(m_cube_vbo, m_cube_vao, m_cubeData);
+
+    m_sphere.updateParams(p1, p2);
+    m_sphereData = m_sphere.generateShape();
+    VBOVAO(m_sphere_vbo, m_sphere_vao, m_sphereData);
+
+    m_cylinder.updateParams(p1, p2);
+    m_cylinderData = m_cylinder.generateShape();
+    VBOVAO(m_cylinder_vbo, m_cylinder_vao, m_cylinderData);
+
+    m_cone.updateParams(p1, p2);
+    m_coneData = m_cone.generateShape();
+    VBOVAO(m_cone_vbo, m_cone_vao, m_coneData);
+}
+
+void Realtime::sendGlobals(GLuint shader)
+{
+    const SceneGlobalData &g = m_renderData.globalData;
+
+    glUniform1f(glGetUniformLocation(shader, "k_a"), g.ka);
+    glUniform1f(glGetUniformLocation(shader, "k_d"), g.kd);
+    glUniform1f(glGetUniformLocation(shader, "k_s"), g.ks);
+
+    glm::vec3 pos = m_camera.getPosition();
+    glUniform4f(glGetUniformLocation(shader, "cameraPos"),
+                pos.x, pos.y, pos.z, 1.f);
+}
+
+void Realtime::sendMaterial(GLuint shader, const SceneMaterial &mat)
+{
+    glm::vec4 ambient  = mat.cAmbient;
+    glm::vec4 diffuse  = mat.cDiffuse;
+    glm::vec4 specular = mat.cSpecular;
+
+    if (ambient == glm::vec4(0))  ambient = glm::vec4(0.2, 0.2, 0.2, 1);
+    if (diffuse == glm::vec4(0))  diffuse = glm::vec4(0.8, 0.8, 0.8, 1);
+    if (specular == glm::vec4(0)) specular = glm::vec4(0,0,0,1);
+
+    glUniform4fv(glGetUniformLocation(shader, "cAmbient"),  1, &ambient[0]);
+    glUniform4fv(glGetUniformLocation(shader, "cDiffuse"),  1, &diffuse[0]);
+    glUniform4fv(glGetUniformLocation(shader, "cSpecular"), 1, &specular[0]);
+    glUniform1f(glGetUniformLocation(shader, "shininess"), mat.shininess);
+}
+
+void Realtime::sendLights(GLuint shader)
+{
+    int n = std::min<int>(m_renderData.lights.size(), 8);
+    glUniform1i(glGetUniformLocation(shader, "size"), n);
+
+    for (int i = 0; i < n; i++) {
+        const SceneLightData &L = m_renderData.lights[i];
+
+        auto UL = [&](std::string s){
+            return glGetUniformLocation(shader, s.c_str());
+        };
+
+        // Build correct GLSL-style array indexing: lightPos[0]
+        std::string idx = "[" + std::to_string(i) + "]";
+
+        glUniform1i(UL("lightType"      + idx), lightTypeToInt(L.type));
+        glUniform4fv(UL("lightPos"      + idx), 1, &L.pos[0]);
+        glUniform4fv(UL("lightDirections"      + idx), 1, &L.dir[0]);
+        glUniform4fv(UL("lightColors"    + idx), 1, &L.color[0]);
+        glUniform3fv(UL("function"      + idx), 1, &L.function[0]);
+        glUniform1f(UL("lightAngle"     + idx),     L.angle);
+        glUniform1f(UL("lightPenumbra"  + idx),     L.penumbra);
+    }
+}
+
+
+
+void Realtime::paintGL() {
+    // Students: anything requiring OpenGL calls every frame should be done here
+    if (!sceneIsReady() || m_shader == 0) {
+        return;
+    }
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (GLuint m_shader: m_shaders) {
-        // Bind shader
-        glUseProgram(m_shader);
+    glUseProgram(m_shader);
 
-        glErrorCheck();
+    glm::mat4 view = m_camera.getViewMatrix();
+    glm::mat4 proj = m_camera.getProjMatrix();
 
-        try {
-            m_scene->draw(m_shader);
-        } catch (std::exception& e) {
-            std::cerr << "Exception: " << e.what() << std::endl;
-            finish();
+    GLint locView = glGetUniformLocation(m_shader, "viewMatrix");
+    GLint locProj = glGetUniformLocation(m_shader, "projMatrix");
+    glUniformMatrix4fv(locView, 1, GL_FALSE, &view[0][0]);
+    glUniformMatrix4fv(locProj, 1, GL_FALSE, &proj[0][0]);
+
+    sendGlobals(m_shader);
+    sendLights(m_shader);
+
+    GLint locModel = glGetUniformLocation(m_shader, "modelMatrix");
+
+    for (size_t i = 0; i < m_renderData.shapes.size(); i++) {
+        const RenderShapeData &shape = m_renderData.shapes[i];
+
+        GLuint vao = 0;
+        size_t nfloats = 0;
+
+        switch (shape.primitive.type) {
+        case PrimitiveType::PRIMITIVE_CUBE:
+            vao = m_cube_vao; nfloats = m_cubeData.size(); break;
+        case PrimitiveType::PRIMITIVE_SPHERE:
+            vao = m_sphere_vao; nfloats = m_sphereData.size(); break;
+        case PrimitiveType::PRIMITIVE_CYLINDER:
+            vao = m_cylinder_vao; nfloats = m_cylinderData.size(); break;
+        case PrimitiveType::PRIMITIVE_CONE:
+            vao = m_cone_vao; nfloats = m_coneData.size(); break;
+        default:
+            continue;
         }
 
-        glErrorCheck();
+        if (vao == 0 || nfloats == 0)
+            continue;
 
-        // Unbind shader 
-        glUseProgram(0);
+        sendMaterial(m_shader, shape.primitive.material);
+
+        // physics transform if available
+        glm::mat4 modelMatrix = shape.ctm;
+
+        if ((m_physicsEnabled || m_rotationEnabled || m_bouncingEnabled)
+            && m_rigidBodies.find(i) != m_rigidBodies.end()) {
+            modelMatrix = m_rigidBodies[i].getTransformMatrix();
+        }
+
+        glUniformMatrix4fv(locModel, 1, GL_FALSE, &modelMatrix[0][0]);
+
+        glBindVertexArray(vao);
+        glDrawArrays(GL_TRIANGLES, 0, nfloats/6);
+        glBindVertexArray(0);
     }
 }
 
@@ -156,53 +283,284 @@ void Realtime::resizeGL(int w, int h) {
     // Tells OpenGL how big the screen is
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
 
-    // Update projection matrix based on new aspect ratio if scene exists
-    if (m_scene.has_value()) m_scene->resize(w, h);
+    if (h>0) {
+        // Students: anything requiring OpenGL calls when the program starts should be done here
+        m_camera.setAspect(float(w)/float(h));
+    }
 }
 
 void Realtime::sceneChanged() {
-    makeCurrent();
-
-    m_metaData = RenderData{};
-
-    // Parse render data
-    bool success = SceneParser::parse(settings.sceneFilePath, m_metaData.value());
-
-    // Exit if parsing fails
-    if (!success) {
-        std::cerr << "Error loading scene: \"" << settings.sceneFilePath << "\"" << std::endl;
-        finish();
-        std::exit(EXIT_FAILURE);
+    if (!isInitialized) {
+        return;
     }
 
-    // Free memory if scene exists
-    if (m_scene.has_value()) m_scene->clean();
+    this->makeCurrent();
 
-    // Create scene
-    m_scene = Scene(m_metaData.value(),
-                    size().width() * 1.f / size().height(),
-                    settings.nearPlane,
-                    settings.farPlane,
-                    settings.shapeParameter1,
-                    settings.shapeParameter2);
+    if (SceneParser::parse(settings.sceneFilePath, m_renderData)) {
+        m_camera = Camera(m_renderData.cameraData,
+                          width()*m_devicePixelRatio,
+                          height()*m_devicePixelRatio);
+    }
 
-    glErrorCheck();
+    this->doneCurrent();
 
     update(); // asks for a PaintGL() call to occur
 }
 
 void Realtime::settingsChanged() {
-    makeCurrent();
+    if (!isInitialized) {
+        return;
+    }
 
-    if (!m_scene.has_value()) return;
-
-    // Update projection matrix based on updated variables
-    m_scene->updateProjection(settings.nearPlane, settings.farPlane);
-    // Retessellate based on update variables
-    m_scene->retessellate(settings.shapeParameter1, settings.shapeParameter2);
-
+    this->makeCurrent();
+    shapeSetup(); // update tessellation + buffers
+    this->doneCurrent();
     update(); // asks for a PaintGL() call to occur
 }
+
+// ================== Physics
+void Realtime::setPhysicsEnabled(bool enabled) {
+    m_physicsEnabled = enabled;
+
+    if (enabled && m_rigidBodies.empty()) {
+        initializePhysics();
+    }
+
+    if (!enabled) {
+        // reset to initial state
+        for (auto& [id, rb] : m_rigidBodies) {
+            rb.x = glm::vec3(rb.initialCTM[3]);
+
+            glm::vec3 scale;
+            scale.x = glm::length(glm::vec3(rb.initialCTM[0]));
+            scale.y = glm::length(glm::vec3(rb.initialCTM[1]));
+            scale.z = glm::length(glm::vec3(rb.initialCTM[2]));
+
+            glm::mat3 rotMat;
+            rotMat[0] = glm::vec3(rb.initialCTM[0]) / scale.x;
+            rotMat[1] = glm::vec3(rb.initialCTM[1]) / scale.y;
+            rotMat[2] = glm::vec3(rb.initialCTM[2]) / scale.z;
+
+            rb.q = glm::quat_cast(rotMat);
+
+            rb.P = glm::vec3(0);
+            rb.L = glm::vec3(0);
+            rb.computeAuxiliaryVariables();
+        }
+    }
+
+    update();
+}
+
+void Realtime::setRotationEnabled(bool enabled) {
+    m_rotationEnabled = enabled;
+    update();
+}
+
+void Realtime::setBouncingEnabled(bool enabled) {
+    m_bouncingEnabled = enabled;
+    update();
+}
+
+void Realtime::resetPhysics() {
+    for (auto& [id, rb] : m_rigidBodies) {
+        rb.x = glm::vec3(rb.initialCTM[3]);
+
+        glm::vec3 scale;
+        scale.x = glm::length(glm::vec3(rb.initialCTM[0]));
+        scale.y = glm::length(glm::vec3(rb.initialCTM[1]));
+        scale.z = glm::length(glm::vec3(rb.initialCTM[2]));
+
+        glm::mat3 rotMat;
+        rotMat[0] = glm::vec3(rb.initialCTM[0]) / scale.x;
+        rotMat[1] = glm::vec3(rb.initialCTM[1]) / scale.y;
+        rotMat[2] = glm::vec3(rb.initialCTM[2]) / scale.z;
+
+        rb.q = glm::quat_cast(rotMat);
+
+        rb.P = glm::vec3(0);
+        rb.L = glm::vec3(0);
+        rb.force = glm::vec3(0);
+        rb.torque = glm::vec3(0);
+        rb.computeAuxiliaryVariables();
+    }
+    update();
+}
+
+void Realtime::initializePhysics() {
+    m_rigidBodies.clear();
+    m_nextRigidBodyId = 0;
+
+    float lowestY = 0.0f;
+    for (const auto& shape : m_renderData.shapes) {
+        glm::vec3 pos = glm::vec3(shape.ctm[3]);
+        lowestY = std::min(lowestY, pos.y);
+    }
+    m_groundY = lowestY - 3.0f;
+
+    for (size_t i = 0; i < m_renderData.shapes.size(); i++) {
+        const auto& shape = m_renderData.shapes[i];
+
+        glm::vec3 pos = glm::vec3(shape.ctm[3]);
+
+        float mass = 1.0f;
+        int id = createRigidBody(i, shape.primitive.type, shape.ctm, mass);
+    }
+}
+
+int Realtime::createRigidBody(int shapeIndex, PrimitiveType type,
+                              const glm::mat4& ctm, float mass) {
+    RigidBody rb(mass, ctm);
+    rb.enableGravity = true;
+    rb.isStatic = false;
+    rb.shapeType = type;
+
+    // scale from CTM to compute inertia tensor
+    glm::vec3 scale;
+    scale.x = glm::length(glm::vec3(ctm[0]));
+    scale.y = glm::length(glm::vec3(ctm[1]));
+    scale.z = glm::length(glm::vec3(ctm[2]));
+
+    // inertia tensor based on shape type
+    switch (type) {
+    case PrimitiveType::PRIMITIVE_CUBE:
+        rb.Ibody = RigidBody::computeBoxInertia(mass, scale);
+        break;
+
+    case PrimitiveType::PRIMITIVE_SPHERE:
+        rb.Ibody = RigidBody::computeSphereInertia(mass, 0.5f * scale.x);
+        break;
+
+    case PrimitiveType::PRIMITIVE_CYLINDER:
+        rb.Ibody = RigidBody::computeCylinderInertia(mass, 0.5f * scale.x, scale.y);
+        break;
+
+    case PrimitiveType::PRIMITIVE_CONE:
+        rb.Ibody = RigidBody::computeConeInertia(mass, 0.5f * scale.x, scale.y);
+        break;
+
+    default:
+        //sphere
+        rb.Ibody = glm::mat3(1.0f);
+        break;
+    }
+
+    // Precompute inverse
+    rb.IbodyInv = glm::inverse(rb.Ibody);
+
+    // Compute initial auxiliary variables
+    rb.computeAuxiliaryVariables();
+
+    // Store using shape index as key
+    int id = shapeIndex;
+    m_rigidBodies[id] = rb;
+
+    return id;
+}
+
+void Realtime::handleSphereBounce(RigidBody& rb) {
+    // sphere radius
+    float radius = rb.initialScale.x * 0.5f;
+
+    // if sphere hit ground
+    float bottomY = rb.x.y - radius;
+
+    if (bottomY <= m_groundY) {
+        rb.x.y = m_groundY + radius;
+
+        // bounciness
+        float restitution = 0.7f;
+
+        if (rb.v.y < 0) {
+            rb.v.y = -rb.v.y * restitution;
+
+            // new linear momentum to match new velocity
+            rb.P = rb.mass * rb.v;
+
+            // reduce horizontal velocity on impact
+            rb.v.x *= 0.9f;
+            rb.v.z *= 0.9f;
+            rb.P = rb.mass * rb.v;
+
+            // reduce spin on impact
+            rb.L *= 0.95f;
+        }
+    }
+}
+
+void Realtime::integrateRigidBody(RigidBody& rb, float dt) {
+    rb.computeAuxiliaryVariables();
+
+    glm::vec3 x_dot = rb.v;
+    glm::vec3 P_dot = rb.force;
+    glm::vec3 L_dot = rb.torque;
+
+    glm::quat omega_quat(0, rb.omega.x, rb.omega.y, rb.omega.z);
+    glm::quat q_dot = 0.5f * (omega_quat * rb.q);
+
+    // euler integration
+    rb.x += x_dot * dt;
+    rb.q += q_dot * dt;
+    rb.q = glm::normalize(rb.q);
+    rb.P += P_dot * dt;
+    rb.L += L_dot * dt;
+
+    //damping
+    rb.P *= 0.99f;
+    rb.L *= 0.99f;
+}
+
+void Realtime::updatePhysics(float deltaTime) {
+    if (!m_physicsEnabled && !m_rotationEnabled && !m_bouncingEnabled) return;
+
+    if ((m_physicsEnabled || m_rotationEnabled || m_bouncingEnabled) && m_rigidBodies.empty()) {
+        initializePhysics();
+    }
+
+    for (auto& [id, rb] : m_rigidBodies) {
+        rb.clearForces();
+    }
+
+    //  gravity if physics checkbox is enabled
+    if (m_physicsEnabled) {
+        for (auto& [id, rb] : m_rigidBodies) {
+            if (!rb.isStatic && rb.enableGravity) {
+                rb.applyForce(rb.mass * m_gravity);
+            }
+        }
+    }
+
+    // torque if rotation is enabled
+    if (m_rotationEnabled) {
+        for (auto& [id, rb] : m_rigidBodies) {
+            if (!rb.isStatic) {
+                glm::vec3 axis = glm::normalize(glm::vec3(
+                    std::sin(id * 1.23f),
+                    std::cos(id * 4.56f),
+                    std::sin(id * 7.89f)
+                    ));
+                rb.torque += axis * 3.0f;
+            }
+        }
+    }
+
+    for (auto& [id, rb] : m_rigidBodies) {
+        if (!rb.isStatic) {
+            integrateRigidBody(rb, deltaTime);
+        }
+    }
+
+    // bouncing
+    if (m_bouncingEnabled) {
+        for (auto& [id, rb] : m_rigidBodies) {
+            // spheres bounce
+            if (!rb.isStatic && rb.shapeType == PrimitiveType::PRIMITIVE_SPHERE) {
+                handleSphereBounce(rb);
+            }
+        }
+    }
+}
+
 
 // ================== Camera Movement!
 
@@ -228,84 +586,38 @@ void Realtime::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void Realtime::mouseMoveEvent(QMouseEvent *event) {
-    if (!m_metaData.has_value() || !m_scene.has_value()) return;
-
     if (m_mouseDown) {
         int posX = event->position().x();
         int posY = event->position().y();
+
         int deltaX = posX - m_prev_mouse_pos.x;
         int deltaY = posY - m_prev_mouse_pos.y;
         m_prev_mouse_pos = glm::vec2(posX, posY);
 
         // Use deltaX and deltaY here to rotate
-        glm::vec4 look = glm::normalize(m_metaData->cameraData.look);
-        glm::vec4 up = glm::normalize(m_metaData->cameraData.up);
-
-        float S = 0.001; // sensitivity
-
-        // rotate left to right on y-axis
-        glm::mat4 yaw = Transform::rotate(fmod(-deltaX * S, 2 * M_PI),
-                                          {0.f, 1.f, 0.f});
-
-        // rotate up and down on x-axis
-        glm::mat4 pitch = Transform::rotate(fmod(deltaY * S, 2 * M_PI),
-                                            glm::cross(glm::vec3{up}, glm::vec3{look}));
-
-        m_metaData->cameraData.look = glm::normalize(yaw * pitch * look);
-        m_metaData->cameraData.up = glm::normalize(yaw * pitch * up);
-
-        m_scene->moveCam(m_metaData->cameraData.pos,
-                         m_metaData->cameraData.look,
-                         m_metaData->cameraData.up);
+        m_camera.rotate(deltaX, deltaY);
 
         update(); // asks for a PaintGL() call to occur
     }
 }
 
 void Realtime::timerEvent(QTimerEvent *event) {
-    if (!m_metaData.has_value() || !m_scene.has_value()) return;
-
+    (void)event;
     int elapsedms   = m_elapsedTimer.elapsed();
     float deltaTime = elapsedms * 0.001f;
     m_elapsedTimer.restart();
 
     // Use deltaTime and m_keyMap here to move around
-    glm::vec4& pos = m_metaData->cameraData.pos;
-    glm::vec4 look = glm::normalize(m_metaData->cameraData.look);
-    glm::vec4 up = glm::normalize(m_metaData->cameraData.up);
+    float speed = 5.f;
 
-    glm::vec4 left = glm::normalize(glm::vec4{glm::cross(glm::vec3{up}, glm::vec3{look}), 0.f});
-    glm::vec4 y {0.f, 1.f, 0.f, 0.f};
+    if (m_keyMap[Qt::Key_W])       m_camera.moveForward( speed * deltaTime);
+    if (m_keyMap[Qt::Key_S])       m_camera.moveForward(-speed * deltaTime);
+    if (m_keyMap[Qt::Key_D])       m_camera.moveRight  ( speed * deltaTime);
+    if (m_keyMap[Qt::Key_A])       m_camera.moveRight  (-speed * deltaTime);
+    if (m_keyMap[Qt::Key_Space])   m_camera.moveUp     ( speed * deltaTime);
+    if (m_keyMap[Qt::Key_Control]) m_camera.moveUp     (-speed * deltaTime);
 
-    float m = 5.f * deltaTime; // scale with m = (m/s) * s
-
-    if (m_keyMap[Qt::Key_W]) pos += look * m; // forward
-    if (m_keyMap[Qt::Key_S]) pos -= look * m; // backward
-    if (m_keyMap[Qt::Key_A]) pos += left * m; // strafe left
-    if (m_keyMap[Qt::Key_D]) pos -= left * m; // strafe right
-    if (m_keyMap[Qt::Key_Space]) pos += y * m; // jump
-    if (m_keyMap[Qt::Key_Control]) pos -= y * m; // prone
-
-    m_scene->moveCam(pos, m_metaData->cameraData.look, m_metaData->cameraData.up);
-
-    // Update animation
-    m_scene->updateAnim(deltaTime);
-
-    // Play/pause animation
-    if (m_keyMap[Qt::Key_P] && !m_pToggled) m_scene->toggleAnimPlayback();
-
-    // Save toggle state to avoid per-frame checks
-    m_pToggled = m_keyMap[Qt::Key_P];
-
-    // Swap to previous animation if pressing left arrow, else to next if right arrow
-    if (m_keyMap[Qt::Key_Left]) m_scene->toggleAnimSwap(false);
-    else if (m_keyMap[Qt::Key_Right]) m_scene->toggleAnimSwap(true);
-
-    // Toggle normal mapping
-    if (m_keyMap[Qt::Key_N] && !m_nToggled) m_scene->toggleNormalMap();
-
-    // Save toggle state to avoid per-frame checks
-    m_nToggled = m_keyMap[Qt::Key_N];
+    updatePhysics(deltaTime);
 
     update(); // asks for a PaintGL() call to occur
 }
@@ -315,10 +627,8 @@ void Realtime::saveViewportImage(std::string filePath) {
     // Make sure we have the right context and everything has been drawn
     makeCurrent();
 
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    int fixedWidth = viewport[2];
-    int fixedHeight = viewport[3];
+    int fixedWidth = 1024;
+    int fixedHeight = 768;
 
     // Create Frame Buffer
     GLuint fbo;
@@ -362,7 +672,7 @@ void Realtime::saveViewportImage(std::string filePath) {
 
     // Convert to QImage
     QImage image(pixels.data(), fixedWidth, fixedHeight, QImage::Format_RGB888);
-    QImage flippedImage = image.flipped(Qt::Vertical); // Flip the image vertically
+    QImage flippedImage = image.mirrored(); // Flip the image vertically
 
     // Save to file using Qt
     QString qFilePath = QString::fromStdString(filePath);

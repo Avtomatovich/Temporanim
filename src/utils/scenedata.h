@@ -98,8 +98,8 @@ struct SceneFileMap {
     void clear()
     {
         isUsed = false;
-        repeatU = 1.0f;
-        repeatV = 1.0f;
+        repeatU = 0.0f;
+        repeatV = 0.0f;
         filename = std::string();
     }
 };

@@ -148,15 +148,15 @@ void MainWindow::initialize() {
 
     // Extra Credit:
     ec1 = new QCheckBox();
-    ec1->setText(QStringLiteral("Extra Credit 1"));
+    ec1->setText(QStringLiteral("Enable Gravity"));
     ec1->setChecked(false);
 
     ec2 = new QCheckBox();
-    ec2->setText(QStringLiteral("Extra Credit 2"));
+    ec2->setText(QStringLiteral("Enable Rotation"));
     ec2->setChecked(false);
 
     ec3 = new QCheckBox();
-    ec3->setText(QStringLiteral("Extra Credit 3"));
+    ec3->setText(QStringLiteral("Sphere Bouncing"));
     ec3->setChecked(false);
 
     ec4 = new QCheckBox();
@@ -282,7 +282,9 @@ void MainWindow::onUploadFile() {
                                                               .append(QDir::separator())
                                                               .append("scenefiles")
                                                               .append(QDir::separator())
-                                                              .append("scenes"), tr("Scene Files (*.json)"));
+                                                              .append("realtime")
+                                                              .append(QDir::separator())
+                                                              .append("required"), tr("Scene Files (*.json)"));
     if (configFilePath.isNull()) {
         std::cout << "Failed to load null scenefile." << std::endl;
         return;
@@ -305,7 +307,11 @@ void MainWindow::onSaveImage() {
     QString filePath = QFileDialog::getSaveFileName(this, tr("Save Image"),
                                                     QDir::currentPath()
                                                         .append(QDir::separator())
-                                                        .append("outputs")
+                                                        .append("student_outputs")
+                                                        .append(QDir::separator())
+                                                        .append("realtime")
+                                                        .append(QDir::separator())
+                                                        .append("required")
                                                         .append(QDir::separator())
                                                         .append(sceneName), tr("Image Files (*.png)"));
     std::cout << "Saving image to: \"" << filePath.toStdString() << "\"." << std::endl;
@@ -358,17 +364,17 @@ void MainWindow::onValChangeFarBox(double newValue) {
 
 void MainWindow::onExtraCredit1() {
     settings.extraCredit1 = !settings.extraCredit1;
-    realtime->settingsChanged();
+    realtime->setPhysicsEnabled(settings.extraCredit1);
 }
 
 void MainWindow::onExtraCredit2() {
     settings.extraCredit2 = !settings.extraCredit2;
-    realtime->settingsChanged();
+    realtime->setRotationEnabled(settings.extraCredit2);
 }
 
 void MainWindow::onExtraCredit3() {
     settings.extraCredit3 = !settings.extraCredit3;
-    realtime->settingsChanged();
+    realtime->setBouncingEnabled(settings.extraCredit3);
 }
 
 void MainWindow::onExtraCredit4() {

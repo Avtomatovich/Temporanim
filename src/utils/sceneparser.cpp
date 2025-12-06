@@ -1,94 +1,80 @@
 #include "sceneparser.h"
 #include "scenefilereader.h"
-#include "modelparser.h"
 #include <glm/gtx/transform.hpp>
+#include <iostream>
 
-void buildRenderData(RenderData& renderData, SceneNode* node, glm::mat4 ctm) {
-    if (node == nullptr) return;
+static void dfsScene(SceneNode *node, glm::mat4 parentCTM, RenderData &renderData)
+{
+    if (!node) return;
 
-    for (SceneTransformation* transform : node->transformations) {
-        switch (transform->type) {
-            case TransformationType::TRANSFORMATION_TRANSLATE:
-                ctm *= glm::translate(transform->translate);
-                break;
-            case TransformationType::TRANSFORMATION_SCALE:
-                ctm *= glm::scale(transform->scale);
-                break;
-            case TransformationType::TRANSFORMATION_ROTATE:
-                ctm *= glm::rotate(transform->angle, transform->rotate);
-                break;
-            case TransformationType::TRANSFORMATION_MATRIX:
-                ctm *= transform->matrix;
-                break;
+    glm::mat4 local = glm::mat4(1.f);
+    for (SceneTransformation *t : node->transformations) {
+        switch (t->type) {
+        case TransformationType::TRANSFORMATION_TRANSLATE:
+            local *= glm::translate(t->translate);
+            break;
+        case TransformationType::TRANSFORMATION_ROTATE:
+            local *= glm::rotate(t->angle, t->rotate);
+            break;
+        case TransformationType::TRANSFORMATION_SCALE:
+            local *= glm::scale(t->scale);
+            break;
+        case TransformationType::TRANSFORMATION_MATRIX:
+            local *= t->matrix;
+            break;
         }
     }
 
-    if (node->children.empty()) {
-        for (ScenePrimitive* primitive : node->primitives) {
-            if (primitive->type == PrimitiveType::PRIMITIVE_MESH) {
-                ModelParser::meshParse(renderData, primitive, ctm);
-            } else {
-                renderData.shapes.push_back(RenderShapeData{*primitive, ctm, glm::inverse(ctm)});
-            }
-        }
+    glm::mat4 ctm = parentCTM * local;
 
-        for (SceneLight* light : node->lights) {
-            SceneLightData lightData{light->id, light->type, light->color};
-
-            switch (light->type) {
-                case LightType::LIGHT_POINT:
-                    // attenuation, position
-                    lightData.function = light->function;
-                    lightData.pos = ctm * glm::vec4{0.f, 0.f, 0.f, 1.f};
-
-                    lightData.dir = glm::vec4{0.f};
-                    lightData.penumbra = 0.f;
-                    lightData.angle = 0.f;
-                    break;
-                case LightType::LIGHT_DIRECTIONAL:
-                    // direction
-                    lightData.dir = ctm * light->dir;
-
-                    lightData.function = glm::vec3{0.f};
-                    lightData.pos = glm::vec4{0.f};
-                    lightData.penumbra = 0.f;
-                    lightData.angle = 0.f;
-                    break;
-                case LightType::LIGHT_SPOT:
-                    // attenuation, position, direction, penumbra, angle
-                    lightData.function = light->function;
-                    lightData.pos = ctm * glm::vec4{0.f, 0.f, 0.f, 1.f};
-                    lightData.dir = ctm * light->dir;
-                    lightData.penumbra = light->penumbra;
-                    lightData.angle = light->angle;
-                    break;
-            }
-
-            renderData.lights.push_back(lightData);
-        }
-
-        return;
+    for (ScenePrimitive *p : node->primitives) {
+        RenderShapeData rs;
+        rs.primitive = *p;
+        rs.ctm = ctm;
+        renderData.shapes.push_back(rs);
     }
 
-    for (SceneNode* child : node->children) {
-        buildRenderData(renderData, child, ctm);
+    for (SceneLight *L : node->lights) {
+        SceneLightData ld;
+        ld.id       = L->id;
+        ld.type     = L->type;
+        ld.color    = L->color;
+        ld.function = L->function;
+        ld.angle    = L->angle;
+        ld.penumbra = L->penumbra;
+
+        if (L->type == LightType::LIGHT_POINT ||
+            L->type == LightType::LIGHT_SPOT) {
+            ld.pos = ctm * glm::vec4(0,0,0,1);
+        }
+
+        if (L->type == LightType::LIGHT_DIRECTIONAL ||
+            L->type == LightType::LIGHT_SPOT)
+        {
+            glm::mat3 R = glm::mat3(ctm);
+            glm::vec3 worldDir = glm::normalize(R * glm::vec3(L->dir));
+            ld.dir = glm::vec4(worldDir, 0.f);
+        }
+
+        renderData.lights.push_back(ld);
+    }
+
+    for (SceneNode *child : node->children) {
+        dfsScene(child, ctm, renderData);
     }
 }
 
-bool SceneParser::parse(std::string filepath, RenderData &renderData) {
-    ScenefileReader fileReader = ScenefileReader(filepath);
-    bool success = fileReader.readJSON();
-    if (!success) {
-        return false;
-    }
+bool SceneParser::parse(std::string filepath, RenderData &renderData)
+{
+    ScenefileReader reader(filepath);
+    if (!reader.readJSON()) return false;
 
-    renderData.globalData = fileReader.getGlobalData();
-    renderData.cameraData = fileReader.getCameraData();
-
-    renderData.lights.clear();
     renderData.shapes.clear();
+    renderData.lights.clear();
 
-    buildRenderData(renderData, fileReader.getRootNode(), glm::mat4{1.f});
+    renderData.globalData = reader.getGlobalData();
+    renderData.cameraData = reader.getCameraData();
 
+    dfsScene(reader.getRootNode(), glm::mat4(1.f), renderData);
     return true;
 }

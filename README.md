@@ -1,3 +1,3 @@
-# Project 6: Final Project Gear Up
+# Project 5: Realtime
 
-The project handout can be found [here](https://cs1230.graphics/projects/final/gear-up/).
+The project handout can be found [here](https://cs1230.graphics/projects/realtime/1).

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # Sets project name
-project(temporanim LANGUAGES CXX C)
+project(projects_realtime LANGUAGES CXX C)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -13,18 +13,12 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Sets path for finding ASSIMP binaries
-set(CMAKE_PREFIX_PATH C:/assimp)
-
 # Specifies required Qt components
 find_package(Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt6 REQUIRED COMPONENTS Gui)
 find_package(Qt6 REQUIRED COMPONENTS OpenGL)
 find_package(Qt6 REQUIRED COMPONENTS OpenGLWidgets)
 find_package(Qt6 REQUIRED COMPONENTS Xml)
-
-# Specifies required ASSIMP binaries
-find_package(assimp REQUIRED)
 
 # Allows you to include files from within those directories, without prefixing their filepaths
 include_directories(src)
@@ -47,29 +41,17 @@ add_executable(${PROJECT_NAME}
     src/utils/sceneparser.h
     src/utils/shaderloader.h
     src/utils/aspectratiowidget/aspectratiowidget.hpp
+    src/shapes/cube.h src/shapes/cube.cpp
 
-    src/primitive/cube.h src/primitive/cube.cpp
-    src/primitive/sphere.h src/primitive/sphere.cpp
-    src/primitive/cone.h src/primitive/cone.cpp
-    src/primitive/cylinder.h src/primitive/cylinder.cpp
-    src/primitive/primitive.h
+
 
     src/camera/camera.h src/camera/camera.cpp
+    src/shapes/cone.h src/shapes/cone.cpp
+    src/shapes/cylinder.h src/shapes/cylinder.cpp
+    src/shapes/sphere.h src/shapes/sphere.cpp
+    src/physics/rigidbody.h src/physics/rigidbody.cpp
 
-    src/scene/scene.h src/scene/scene.cpp
 
-    src/geometry/geometry.h src/geometry/geometry.cpp
-    src/geometry/mesh.h src/geometry/mesh.cpp
-    src/geometry/model.h src/geometry/model.cpp
-
-    src/texture/texture.h src/texture/texture.cpp
-
-    src/utils/debug.h
-    src/utils/uniloader.h src/utils/uniloader.cpp
-    src/utils/transform.h src/utils/transform.cpp
-    src/utils/modelparser.h src/utils/modelparser.cpp
-
-    src/animation/animator.h src/animation/animator.cpp
 )
 
 # GLM: this creates its library and allows you to `#include "glm/..."`
@@ -87,7 +69,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt::OpenGLWidgets
     Qt::Xml
     StaticGLEW
-    assimp::assimp
 )
 
 # Specifies other files

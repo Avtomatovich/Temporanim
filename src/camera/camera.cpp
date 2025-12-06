@@ -1,84 +1,99 @@
 #include "camera.h"
-#include "utils/transform.h"
+#include "settings.h"
+#include <glm/gtc/matrix_inverse.hpp>
+#include <cmath>
 
-Camera::Camera(glm::vec3 pos, glm::vec3 look, glm::vec3 up,
-               float aspectRatio,
-               float heightAngle,
-               float near, float far) :
-    m_heightAngle(heightAngle),
-    m_near(near),
-    m_far(far)
+Camera::Camera(const SceneCameraData &data, int width, int height)
 {
-    // init view matrix
-    setView(pos, look, up);
+    m_pos = data.pos;
+    m_look = data.look;
+    m_up = data.up;
 
-    // init aspect ratio, height angle, projection matrix
-    setAspectRatio(aspectRatio);
+    m_heightAngle = data.heightAngle;
+    m_aspect = float(width) / float(height);
+
+    updateBasis();
 }
 
-void Camera::setView(const glm::vec3& pos,
-                     const glm::vec3& look,
-                     const glm::vec3& up)
-{
-    m_pos = pos;
+void Camera::updateBasis() {
+    glm::vec3 look3 = glm::vec3(m_look);
+    glm::vec3 up3   = glm::vec3(m_up);
 
-    glm::vec3 w = glm::normalize(-look);
-    glm::vec3 v = glm::normalize(up - glm::dot(up, w) * w);
-    glm::vec3 u = glm::cross(v, w);
-
-    glm::mat4 rotation {
-        glm::vec4(u.x, v.x, w.x, 0.f),
-        glm::vec4(u.y, v.y, w.y, 0.f),
-        glm::vec4(u.z, v.z, w.z, 0.f),
-        glm::vec4(0.f, 0.f, 0.f, 1.f)
-    };
-
-    m_view = rotation * Transform::translate(-pos);
+    m_w = glm::normalize(-look3);                 // backwards
+    m_u = glm::normalize(glm::cross(up3, m_w));   // right
+    m_v = glm::cross(m_w, m_u);                   // up
 }
 
-void Camera::setAspectRatio(float aspectRatio) {
-    m_aspectRatio = aspectRatio;
-    m_widthAngle = 2.f * atan(m_aspectRatio * tan(m_heightAngle / 2.f));
-    perspective(m_near, m_far);
+
+glm::mat4 Camera::getViewMatrix() const {
+
+    glm::mat4 R(1.f);
+    R[0] = glm::vec4(m_u, 0);
+    R[1] = glm::vec4(m_v, 0);
+    R[2] = glm::vec4(m_w, 0);
+
+    glm::mat4 T = glm::mat4(1.f);
+    T[3][0] = -m_pos.x;
+    T[3][1] = -m_pos.y;
+    T[3][2] = -m_pos.z;
+
+    return glm::transpose(R) * T;
 }
 
-const glm::mat4& Camera::getView() const {
-    return m_view;
+
+glm::mat4 Camera::getProjMatrix() const {
+    float n = settings.nearPlane;
+    float f = settings.farPlane;
+    float tanH = tan(m_heightAngle / 2.f);
+    float tanW = tanH * m_aspect;
+
+    // OpenGL perspective projection matrix
+    glm::mat4 proj(0.f);
+
+    proj[0][0] = 1.f / tanW;
+    proj[1][1] = 1.f / tanH;
+    proj[2][2] = -((f + n) / (f - n));
+    proj[2][3] = -1.f;
+    proj[3][2] = -((2.f * f * n) / (f - n));
+
+    return proj;
 }
 
-const glm::mat4& Camera::getProj() const {
-    return m_proj;
+
+
+void Camera::moveForward(float amt) {
+    m_pos += glm::vec4(glm::normalize(glm::vec3(m_look)) * amt, 0);
 }
 
-const glm::vec3& Camera::getPos() const {
-    return m_pos;
+void Camera::moveRight(float amt) {
+    m_pos += glm::vec4(m_u * amt, 0);
 }
 
-void Camera::perspective(float near, float far) {
-    m_near = near, m_far = far;
+void Camera::moveUp(float amt) {
+    m_pos += glm::vec4(0, amt, 0, 0);
+}
 
-    float c = -near / far;
 
-    glm::mat4 scalingMat {
-        glm::vec4(1.f / (far * tan(m_widthAngle / 2.f)), 0.f, 0.f, 0.f),
-        glm::vec4(0.f, 1.f / (far * tan(m_heightAngle / 2.f)), 0.f, 0.f),
-        glm::vec4(0.f, 0.f, 1.f / far, 0.f),
-        glm::vec4(0.f, 0.f, 0.f, 1.f)
-    };
+void Camera::rotate(float dx, float dy) {
 
-    glm::mat4 unhingingMat {
-        glm::vec4(1.f, 0.f, 0.f, 0.f),
-        glm::vec4(0.f, 1.f, 0.f, 0.f),
-        glm::vec4(0.f, 0.f, 1.f / (1.f + c), -1.f),
-        glm::vec4(0.f, 0.f, -c / (1.f + c), 0.f)
-    };
+    float sensitivity = 0.005f;
 
-    glm::mat4 remappingMat {
-        glm::vec4(1.f, 0.f, 0.f, 0.f),
-        glm::vec4(0.f, 1.f, 0.f, 0.f),
-        glm::vec4(0.f, 0.f, -2.f, 0.f),
-        glm::vec4(0.f, 0.f, -1.f, 1.f)
-    };
+    float yaw = -dx * sensitivity;
+    float pitch = -dy * sensitivity;
 
-    m_proj = remappingMat * unhingingMat * scalingMat;
+    glm::mat4 yawMat = glm::mat4(1.f);
+    yawMat[0][0] =  cos(yaw); yawMat[0][2] = sin(yaw);
+    yawMat[2][0] = -sin(yaw); yawMat[2][2] = cos(yaw);
+
+    glm::mat4 pitchMat = glm::mat4(1.f);
+    pitchMat[1][1] = cos(pitch);  pitchMat[1][2] = -sin(pitch);
+    pitchMat[2][1] = sin(pitch);  pitchMat[2][2] = cos(pitch);
+
+    glm::vec4 newLook = yawMat * pitchMat * m_look;
+
+    glm::vec3 look3 = glm::normalize(glm::vec3(newLook));
+    m_look = glm::vec4(look3, 0.f);
+
+    updateBasis();
+
 }
