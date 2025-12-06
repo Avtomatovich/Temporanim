@@ -1,0 +1,138 @@
+{
+  "name": "anim_scene",
+  "globalData": {
+    "ambientCoeff": 1,
+    "diffuseCoeff": 1,
+    "specularCoeff": 1,
+    "transparentCoeff": 0
+  },
+  "cameraData": {
+    "position": [0, 1, 5],
+    "up": [0, 1, 0],
+    "heightAngle": 45,
+    "look": [0, 0, -1]
+  },
+  "groups": [
+    {
+      "name": "Point Light 1",
+      "lights": [
+        {
+          "color": [0.9, 0.75, 0.25],
+          "type": "point",
+          "attenuationCoeff": [0, 1, 0]
+        }
+      ],
+      "translate": [-3, 5, -3]
+    },
+    {
+      "name": "Point Light 2",
+      "lights": [
+        {
+          "color": [0.9, 0.75, 0.25],
+          "type": "point",
+          "attenuationCoeff": [0.1, 0.5, 0]
+        }
+      ],
+      "translate": [3, 3, 3]
+    },
+    {
+      "name": "Spot Light",
+      "lights": [
+        {
+          "color": [1, 1, 1],
+          "type": "spot",
+          "direction": [0, -1, 0],
+          "penumbra": 30,
+          "angle": 40,
+          "attenuationCoeff": [0.5, 0.1, 0]
+        }
+      ],
+      "translate": [0, 5, 1]
+    },
+    {
+      "name": "Model",
+      "primitives": [
+        {
+          "type": "mesh",
+          "ambient": [0.2, 0.2, 0.7],
+          "meshFile": "models/paladin/idle_paladin.dae",
+          "diffuse": [0.23, 0.33, 0.99],
+          "specular": [1, 1, 1],
+          "shininess": 30
+        }
+      ],
+      "scale": [0.01, 0.01, 0.01]
+    },
+    {
+      "name": "Right Wall",
+      "primitives": [
+        {
+          "ambient": [0, 0, 0],
+          "diffuse": [1, 1, 1],
+          "specular": [0, 0, 0],
+          "shininess": 1,
+          "type": "cube",
+          "textureFile": "textures/bricks.jpg",
+          "blend": 1.0,
+          "textureU": 5.0,
+          "textureV": 5.0
+        }
+      ],
+      "translate": [5, 2.5, 0],
+      "scale": [0.1, 5, 10]
+    },
+    {
+      "name": "Left Wall",
+      "primitives": [
+        {
+          "ambient": [0, 0, 0],
+          "diffuse": [1, 1, 1],
+          "specular": [0, 0, 0],
+          "shininess": 1,
+          "type": "cube",
+          "textureFile": "textures/bricks.jpg",
+          "blend": 1.0,
+          "textureU": 5.0,
+          "textureV": 5.0
+        }
+      ],
+      "translate": [-5, 2.5, 0],
+      "scale": [0.1, 5, 10]
+    },
+    {
+      "name": "Back Wall",
+      "primitives": [
+        {
+          "ambient": [0, 0, 0],
+          "diffuse": [1, 1, 1],
+          "specular": [0, 0, 0],
+          "shininess": 1,
+          "type": "cube",
+          "textureFile": "textures/bricks.jpg",
+          "blend": 1.0,
+          "textureU": 5.0,
+          "textureV": 5.0
+        }
+      ],
+      "translate": [0, 2.5, -5],
+      "scale": [10, 5, 0.1]
+    },
+    {
+      "name": "Floor",
+      "primitives": [
+        {
+          "diffuse": [0, 0, 0],
+          "specular": [1, 1, 1],
+          "shininess": 10,
+          "type": "cube",
+          "textureFile": "textures/marble-board.jpg",
+          "blend": 1.0,
+          "textureU": 5.0,
+          "textureV": 5.0
+        }
+      ],
+      "translate": [0, 0, 0],
+      "scale": [10, 0.1, 10]
+    }
+  ]
+}
