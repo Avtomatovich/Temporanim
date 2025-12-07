@@ -13,13 +13,11 @@ public:
 
     const bool hasAnim() const;
 
-    void play();
-
     void update(float deltaTime);
 
-    void swapForward();
+    void play();
 
-    void swapBackward();
+    void swap(bool toNext);
 
 private:
     const std::vector<Animation>& m_anims;

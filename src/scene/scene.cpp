@@ -32,7 +32,14 @@ Scene::Scene(const RenderData& metaData,
 
         // Add model to model map if not present
         if (!m_modelMap.contains(meshfile) && !meshfile.empty()) {
-            m_modelMap.emplace(meshfile, Model{meshfile, metaData.animData.at(meshfile)});
+            m_modelMap.emplace(meshfile, meshfile);
+        }
+
+        // Add animator to animator map if not present
+        if (!m_animMap.contains(meshfile) && !meshfile.empty()) {
+            const AnimData& animData = metaData.animData.at(meshfile);
+            // Only add if animations are present
+            if (!animData.animations.empty()) m_animMap.emplace(meshfile, animData);
         }
 
         // If shape is mesh
@@ -84,7 +91,7 @@ bool Scene::draw(GLuint shader) {
         if (i >= m_lights.size()) {
             passLightVars(shader, SceneLightData{}, i, true);
         } else {
-            passLightVars(shader, m_lights.at(i), i, false);
+            passLightVars(shader, m_lights[i], i, false);
         }
     }
 
@@ -114,10 +121,9 @@ bool Scene::draw(GLuint shader) {
         // pass ctms
         passShapeVars(shader, shape);
 
-        if (m_modelMap.contains(shape.primitive.meshfile)) {
-            Model& model = m_modelMap.at(shape.primitive.meshfile);
-
-            if (model.hasAnim()) passBoneVars(shader, model);
+        if (m_animMap.contains(shape.primitive.meshfile)) {
+            const Animator& animator = m_animMap.at(shape.primitive.meshfile);
+            if (animator.hasAnim()) passBoneVars(shader, animator);
         }
 
         geom.draw();
@@ -137,17 +143,15 @@ void Scene::retessellate(int param1, int param2) {
 }
 
 void Scene::updateAnim(float dt) {
-    for (auto& model : m_modelMap) model.second.updateAnim(dt);
+    for (auto& anim : m_animMap) anim.second.update(dt);
 }
 
-void Scene::toggleAnimPlayback() {
-    for (auto& model : m_modelMap) model.second.playAnim();
+void Scene::playAnim() {
+    for (auto& anim : m_animMap) anim.second.play();
 }
 
-void Scene::toggleAnimSwap(bool toNext) {
-    for (auto& model : m_modelMap) {
-        model.second.swapAnim(toNext);
-    }
+void Scene::swapAnim(bool toNext) {
+    for (auto& anim : m_animMap) anim.second.swap(toNext);
 }
 
 void Scene::toggleNormalMap() {
@@ -158,16 +162,16 @@ void Scene::addPrim(const RenderShapeData& shape, int param1, int param2) {
     int key = getGeomKey(shape);
     switch(shape.primitive.type) {
         case PrimitiveType::PRIMITIVE_CUBE:
-            m_primMap.emplace(key, Geometry{std::make_unique<Cube>(param1)});
+            m_primMap.emplace(key, std::make_unique<Cube>(param1));
             break;
         case PrimitiveType::PRIMITIVE_CONE:
-            m_primMap.emplace(key, Geometry{std::make_unique<Cone>(param1, param2)});
+            m_primMap.emplace(key, std::make_unique<Cone>(param1, param2));
             break;
         case PrimitiveType::PRIMITIVE_CYLINDER:
-            m_primMap.emplace(key, Geometry{std::make_unique<Cylinder>(param1, param2)});
+            m_primMap.emplace(key, std::make_unique<Cylinder>(param1, param2));
             break;
         case PrimitiveType::PRIMITIVE_SPHERE:
-            m_primMap.emplace(key, Geometry{std::make_unique<Sphere>(param1, param2)});
+            m_primMap.emplace(key, std::make_unique<Sphere>(param1, param2));
             break;
         case PrimitiveType::PRIMITIVE_MESH:
             break;

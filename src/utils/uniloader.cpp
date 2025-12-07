@@ -1,7 +1,6 @@
 #include <stdexcept>
 #include <iostream>
 #include "uniloader.h"
-#include "geometry/model.h"
 
 namespace UniLoader
 {
@@ -166,8 +165,8 @@ namespace UniLoader
         glUniform1i(texID, texture.getSlot());
     }
 
-    void passBoneVars(GLuint shader, const Model& model) {
-        const auto& skinMats = model.getSkinMats();
+    void passBoneVars(GLuint shader, const Animator& animator) {
+        const auto& skinMats = animator.getSkinMats();
 
         // pass bone bool as true if skinning matrices exist
         if (!skinMats.empty()) {

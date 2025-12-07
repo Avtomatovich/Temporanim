@@ -2,10 +2,10 @@
 #define UNILOADER_H
 
 #include <GL/glew.h>
-#include "geometry/model.h"
 #include "sceneparser.h"
 #include "camera/camera.h"
 #include "texture/texture.h"
+#include "animation/animator.h"
 
 namespace UniLoader
 {
@@ -19,7 +19,7 @@ namespace UniLoader
 
     void passTextureVars(GLuint shader, const Texture& texture);
 
-    void passBoneVars(GLuint shader, const Model& model);
+    void passBoneVars(GLuint shader, const Animator& animator);
 }
 
 #endif // UNILOADER_H

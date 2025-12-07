@@ -292,14 +292,14 @@ void Realtime::timerEvent(QTimerEvent *event) {
     m_scene->updateAnim(deltaTime);
 
     // Play/pause animation
-    if (m_keyMap[Qt::Key_P] && !m_pToggled) m_scene->toggleAnimPlayback();
+    if (m_keyMap[Qt::Key_P] && !m_pToggled) m_scene->playAnim();
 
     // Save toggle state to avoid per-frame checks
     m_pToggled = m_keyMap[Qt::Key_P];
 
     // Swap to previous animation if pressing left arrow, else to next if right arrow
-    if (m_keyMap[Qt::Key_Left]) m_scene->toggleAnimSwap(false);
-    else if (m_keyMap[Qt::Key_Right]) m_scene->toggleAnimSwap(true);
+    if (m_keyMap[Qt::Key_Left]) m_scene->swapAnim(false);
+    else if (m_keyMap[Qt::Key_Right]) m_scene->swapAnim(true);
 
     // Toggle normal mapping
     if (m_keyMap[Qt::Key_N] && !m_nToggled) m_scene->toggleNormalMap();

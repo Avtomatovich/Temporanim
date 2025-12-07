@@ -16,52 +16,12 @@ const std::vector<glm::mat4>& Animator::getSkinMats() const {
     return m_skinMats;
 }
 
-const bool Animator::hasAnim() const {
-    return !m_anims.empty();
-}
-
 void Animator::play() {
     m_isPlaying = !m_isPlaying;
 }
 
-void Animator::reset() {
-    // Reset ticks
-    m_ticks = 0.f;
-
-    // Set to play
-    m_isPlaying = true;
-}
-
-void Animator::swapForward() {
-    // Return if empty
-    if (m_anims.empty()) return;
-
-    // Shift iterator forward
-    ++m_animIter;
-
-    // Loop to beginning if iterator reaches end
-    if (m_animIter == m_anims.end()) m_animIter = m_anims.begin();
-
-    // Fetch next animation
-    m_anim = std::make_unique<Animation>(*m_animIter);
-
-    reset();
-}
-
-void Animator::swapBackward() {
-    // Return if empty
-    if (m_anims.empty()) return;
-
-    // Shift iterator back
-    --m_animIter;
-
-    // Loop to end if iterator reaches beginning
-    if (m_animIter < m_anims.begin()) m_animIter = m_anims.end() - 1;
-
-    // Fetch previous animation
-    m_anim = std::make_unique<Animation>(*m_animIter);
-
-    reset();
+const bool Animator::hasAnim() const {
+    return !m_anims.empty();
 }
 
 void Animator::update(float deltaTime) {
@@ -76,6 +36,36 @@ void Animator::update(float deltaTime) {
 
     // Compute skinning matrices
     computeSkinMats(m_ticks);
+}
+
+void Animator::reset() {
+    // Reset ticks
+    m_ticks = 0.f;
+
+    // Set to play
+    m_isPlaying = true;
+}
+
+void Animator::swap(bool toNext) {
+    // Return if empty
+    if (m_anims.empty()) return;
+
+    if (toNext) {
+        // Shift iterator forward
+        ++m_animIter;
+        // Loop to beginning if iterator reaches end
+        if (m_animIter == m_anims.end()) m_animIter = m_anims.begin();
+    } else {
+        // Shift iterator back
+        --m_animIter;
+        // Loop to end if iterator reaches beginning
+        if (m_animIter < m_anims.begin()) m_animIter = m_anims.end() - 1;
+    }
+
+    // Fetch animation
+    m_anim = std::make_unique<Animation>(*m_animIter);
+
+    reset();
 }
 
 void Animator::computeSkinMats(float now) {

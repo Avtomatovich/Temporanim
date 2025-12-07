@@ -2,6 +2,7 @@
 #define SCENE_H
 
 #include <unordered_map>
+#include "animation/animator.h"
 #include "camera/camera.h"
 #include "geometry/model.h"
 #include "geometry/geometry.h"
@@ -22,10 +23,13 @@ public:
 
     bool draw(GLuint shader);
 
+    // tessellation funcs
+    void retessellate(int param1, int param2);
+
+    // camera funcs
     inline void moveCam(glm::vec3 pos, glm::vec3 look, glm::vec3 up) {
         m_cam.setView(pos, look, up);
     }
-
     inline void resize(int w, int h) {
         m_cam.setAspectRatio(w * 1.f / h);
     }
@@ -34,14 +38,14 @@ public:
         m_cam.perspective(near, far);
     }
 
-    void retessellate(int param1, int param2);
-
+    // anim funcs
     void updateAnim(float dt);
 
-    void toggleAnimPlayback();
+    void playAnim();
 
-    void toggleAnimSwap(bool isNext);
+    void swapAnim(bool isNext);
 
+    // normal map funcs
     void toggleNormalMap();
 
 private:
@@ -53,6 +57,7 @@ private:
     std::unordered_map<int, Geometry> m_primMap;
     std::unordered_map<std::string, Texture> m_texMap;
     std::unordered_map<std::string, Model> m_modelMap;
+    std::unordered_map<std::string, Animator> m_animMap;
 
     void addPrim(const RenderShapeData& shape, int param1, int param2);
     const Geometry& getGeom(const RenderShapeData& shape);
