@@ -10,6 +10,50 @@ const std::vector<float>& Primitive::generateShape() {
     return m_vertexData;
 }
 
+glm::vec2 Primitive::calcPlaneUV(const glm::vec3& pt,
+                                 const glm::vec3& n)
+{
+    glm::vec2 uv{0.f};
+
+    // rotate CCW
+    if (n.x != 0.f) {
+        // if on x-axis
+        uv = n.x < 0.f ? glm::vec2{pt.z, pt.y} : glm::vec2{-pt.z, pt.y};
+    } else if (n.y != 0.f) {
+        // on y-axis
+        uv = n.y < 0.f ? glm::vec2{pt.x, pt.z} : glm::vec2{pt.x, -pt.z};
+    } else if (n.z != 0.f) {
+        // if on z-axis
+        uv = n.z < 0.f ? glm::vec2{-pt.x, pt.y} : glm::vec2{pt.x, pt.y};
+    }
+
+    // scale to [0, 1]
+    return uv + 0.5f;
+}
+
+std::pair<glm::vec3, glm::vec3> Primitive::calcTB(const glm::vec3& p0,
+                                                  const glm::vec3& p1,
+                                                  const glm::vec3& p2,
+                                                  const glm::vec2& uv0,
+                                                  const glm::vec2& uv1,
+                                                  const glm::vec2& uv2)
+{
+    glm::vec3 e0 = p1 - p0;
+    glm::vec3 e1 = p2 - p0;
+
+    glm::vec2 duv0 = uv1 - uv0;
+    glm::vec2 duv1 = uv2 - uv0;
+
+    float det = duv0.x * duv1.y - duv1.x * duv0.y;
+
+    // If det is close to 0, point tangent in x dir, bitangent in y dir
+    if (fabs(det) < EPS) return {{1, 0, 0}, {0, 1, 0}};
+
+    float coeff = 1.f / det;
+
+    return {coeff * (e0 * duv1.y - e1 * duv0.y), coeff * (-e0 * duv1.x + e1 * duv0.x)};
+}
+
 void Primitive::makePlaneTile(const glm::vec3& topLeft,
                               const glm::vec3& topRight,
                               const glm::vec3& bottomLeft,
@@ -63,48 +107,4 @@ void Primitive::makePlaneTile(const glm::vec3& topLeft,
     insertVec2(m_vertexData, bR_UV);
     insertVec3(m_vertexData, T2);
     insertVec3(m_vertexData, B2);
-}
-
-glm::vec2 Primitive::calcPlaneUV(const glm::vec3& pt,
-                                 const glm::vec3& n)
-{
-    glm::vec2 uv{0.f};
-
-    // rotate CCW
-    if (n.x != 0.f) {
-        // if on x-axis
-        uv = n.x < 0.f ? glm::vec2{pt.z, pt.y} : glm::vec2{-pt.z, pt.y};
-    } else if (n.y != 0.f) {
-        // on y-axis
-        uv = n.y < 0.f ? glm::vec2{pt.x, pt.z} : glm::vec2{pt.x, -pt.z};
-    } else if (n.z != 0.f) {
-        // if on z-axis
-        uv = n.z < 0.f ? glm::vec2{-pt.x, pt.y} : glm::vec2{pt.x, pt.y};
-    }
-
-    // scale to [0, 1]
-    return uv + 0.5f;
-}
-
-std::pair<glm::vec3, glm::vec3> Primitive::calcTB(const glm::vec3& p0,
-                                                  const glm::vec3& p1,
-                                                  const glm::vec3& p2,
-                                                  const glm::vec2& uv0,
-                                                  const glm::vec2& uv1,
-                                                  const glm::vec2& uv2)
-{
-    glm::vec3 e0 = p1 - p0;
-    glm::vec3 e1 = p2 - p0;
-
-    glm::vec2 duv0 = uv1 - uv0;
-    glm::vec2 duv1 = uv2 - uv0;
-
-    float det = duv0.x * duv1.y - duv1.x * duv0.y;
-
-    // If det is close to 0, point tangent in x dir, bitangent in y dir
-    if (fabs(det) < EPS) return {{1, 0, 0}, {0, 1, 0}};
-
-    float coeff = 1.f / det;
-
-    return {coeff * (e0 * duv1.y - e1 * duv0.y), coeff * (-e0 * duv1.x + e1 * duv0.x)};
 }

@@ -26,11 +26,9 @@ void Geometry::updateTesselParams(int param1, int param2) {
 void Geometry::draw() const {
     glBindVertexArray(m_vao);
 
-    if (m_prim) {
-        glDrawArrays(GL_TRIANGLES, 0, m_numVertices);
-    } else {
+    m_prim ?
+        glDrawArrays(GL_TRIANGLES, 0, m_numVertices) :
         glDrawElements(GL_TRIANGLES, m_numIndexes, GL_UNSIGNED_INT, 0);
-    }
 
     glBindVertexArray(0);
 }

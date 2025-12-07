@@ -28,11 +28,6 @@ protected:
 
     void init(int param1, int param2);
 
-    void makePlaneTile(const glm::vec3& topLeft,
-                       const glm::vec3& topRight,
-                       const glm::vec3& bottomLeft,
-                       const glm::vec3& bottomRight);
-
     glm::vec2 calcPlaneUV(const glm::vec3& pt,
                           const glm::vec3& n);
 
@@ -42,6 +37,11 @@ protected:
                                            const glm::vec2& uv0,
                                            const glm::vec2& uv1,
                                            const glm::vec2& uv2);
+
+    void makePlaneTile(const glm::vec3& topLeft,
+                       const glm::vec3& topRight,
+                       const glm::vec3& bottomLeft,
+                       const glm::vec3& bottomRight);
 
     inline void insertVec2(std::vector<float>& data, glm::vec2 v) {
         data.push_back(v.x);
