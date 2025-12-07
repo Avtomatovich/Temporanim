@@ -39,8 +39,6 @@ private:
     void mouseMoveEvent(QMouseEvent *event) override;
     void timerEvent(QTimerEvent *event) override;
 
-    void loadShaders();
-
     void toggleFeatures();
 
     // Tick Related Variables
@@ -62,5 +60,5 @@ private:
     std::optional<Scene> m_scene;
 
     // Shader Program IDs
-    std::vector<GLuint> m_shaders;
+    GLuint m_shader;
 };

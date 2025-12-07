@@ -44,10 +44,8 @@ void Realtime::finish() {
     // Delete VBOs and VAOs if scene exists
     if (m_scene.has_value()) m_scene->clean();
 
-    // Delete shader programs
-    for (GLuint m_shader: m_shaders) {
-        glDeleteProgram(m_shader);
-    }
+    // Delete shader program
+    glDeleteProgram(m_shader);
 
     this->doneCurrent();
 }
@@ -74,7 +72,10 @@ void Realtime::initializeGL() {
     // Tells OpenGL how big the screen is
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
 
-    loadShaders();
+    m_shader = ShaderLoader::createShaderProgram(
+                    "./resources/shaders/default.vert",
+                    "./resources/shaders/default.frag"
+                );
 }
 
 void Realtime::paintGL() {
@@ -83,24 +84,22 @@ void Realtime::paintGL() {
     // Clear screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (GLuint m_shader: m_shaders) {
-        // Bind shader
-        glUseProgram(m_shader);
+    // Bind shader
+    glUseProgram(m_shader);
 
-        glErrorCheck();
+    glErrorCheck();
 
-        try {
-            m_scene->draw(m_shader);
-        } catch (std::exception& e) {
-            std::cerr << "Exception: " << e.what() << std::endl;
-            finish();
-        }
-
-        glErrorCheck();
-
-        // Unbind shader 
-        glUseProgram(0);
+    try {
+        m_scene->draw(m_shader);
+    } catch (std::exception& e) {
+        std::cerr << "Exception: " << e.what() << std::endl;
+        finish();
     }
+
+    glErrorCheck();
+
+    // Unbind shader
+    glUseProgram(0);
 }
 
 void Realtime::resizeGL(int w, int h) {
@@ -156,58 +155,6 @@ void Realtime::settingsChanged() {
 }
 
 // ================== Auxiliary Functions!
-
-void Realtime::loadShaders() {
-    // Fetch shader directory
-    QDir dir("./resources/shaders");
-
-    // Exit if shader directory does not exist or is empty
-    if (!dir.exists() || dir.isEmpty()) {
-        throw std::runtime_error("Invalid shader directory.");
-    }
-
-    // Fetch list of directory entries
-    QFileInfoList fileInfoList = dir.entryInfoList();
-
-    // Init temp shader file base name
-    std::unordered_set<QString> processed;
-
-    for (int i = 0; i < fileInfoList.size(); ++i) {
-        const QFileInfo& fileInfo = fileInfoList.at(i);
-        if (fileInfo.isFile()) {
-            // Get current file base name
-            QString currName = fileInfo.completeBaseName();
-
-            // Skip if shader has been processed
-            if (processed.contains(currName)) continue;
-
-            // Fetch full current path without file extension
-            QString path = dir.filePath(currName);
-
-            // Fetch shader paths
-            QFileInfo vertexPath(path + ".vert");
-            QFileInfo fragmentPath(path + ".frag");
-
-            // Exit if vertex/fragment shader does not exist
-            if (!vertexPath.exists()) {
-                throw std::runtime_error("Missing vertex shader: " + vertexPath.filePath().toStdString());
-            }
-            if (!fragmentPath.exists()) {
-                throw std::runtime_error("Missing fragment shader: " + fragmentPath.filePath().toStdString());
-            }
-
-            // Create shader program
-            m_shaders.push_back(ShaderLoader::createShaderProgram(
-                vertexPath.filePath().toStdString().c_str(),
-                fragmentPath.filePath().toStdString().c_str()
-            ));
-
-            processed.insert(currName);
-        }
-    }
-
-    glErrorCheck();
-}
 
 void Realtime::toggleFeatures() {
     // Play/pause animation
