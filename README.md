@@ -15,6 +15,9 @@ This project uses ASSIMP to load meshes. This repo includes a slimmed-down versi
         * You will get an error saying that the tests folder is missing.
         * This is intentional since its size is large and is not necessary for our purposes.
     5. Find the ASSIMP_BUILD_TESTS flag and disable it.
-    6. Click on `Configure` again. It should work.
-    7. Click on `Generate`.
+    6. Click on `Configure` again. It should work. You should see something like this:
+    
+    <img width="1920" height="1032" alt="image" src="https://github.com/user-attachments/assets/574a6874-a0ba-4acc-b8ca-7abbee56be05" />
+    
+    7. Click on `Generate`. 
     8. Navigate to your build folder, and run the command `cmake --build . --config Release` in your terminal.
