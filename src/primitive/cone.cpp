@@ -7,7 +7,7 @@ void Cone::updateParams(int param1, int param2) {
     setVertexData();
 }
 
-glm::vec2 Cone::calcUV(glm::vec3& pt) {
+glm::vec2 Cone::calcUV(const glm::vec3& pt) {
     glm::vec2 uv{0.f};
 
     float theta = atan2(pt.z, pt.x);
@@ -21,65 +21,10 @@ glm::vec2 Cone::calcUV(glm::vec3& pt) {
     return uv;
 }
 
-void Cone::makeCapTile(glm::vec3 topLeft,
-                       glm::vec3 topRight,
-                       glm::vec3 bottomLeft,
-                       glm::vec3 bottomRight)
-{
-    glm::vec3 N = glm::normalize(glm::cross(bottomLeft - topLeft, bottomRight - topLeft));
-
-    glm::vec2 tL_UV = calcPlaneUV(topLeft, N);
-    glm::vec2 bR_UV = calcPlaneUV(bottomRight, N);
-    glm::vec2 tR_UV = calcPlaneUV(topRight, N);
-    glm::vec2 bL_UV = calcPlaneUV(bottomLeft, N);
-
-    auto [T1, B1] = calcTB(topLeft, bottomRight, topRight, tL_UV, bR_UV, tR_UV);
-    auto [T2, B2] = calcTB(topLeft, bottomLeft, bottomRight, tL_UV, bL_UV, bR_UV);
-
-    // triangle 1
-    insertVec3(m_vertexData, topLeft);
-    insertVec3(m_vertexData, N);
-    insertVec2(m_vertexData, tL_UV);
-    insertVec3(m_vertexData, T1);
-    insertVec3(m_vertexData, B1);
-    
-    insertVec3(m_vertexData, bottomRight);
-    insertVec3(m_vertexData, N);
-    insertVec2(m_vertexData, bR_UV);
-    insertVec3(m_vertexData, T1);
-    insertVec3(m_vertexData, B1);
-
-    insertVec3(m_vertexData, topRight);
-    insertVec3(m_vertexData, N);
-    insertVec2(m_vertexData, tR_UV);
-    insertVec3(m_vertexData, T1);
-    insertVec3(m_vertexData, B1);
-
-
-    // triangle 2
-    insertVec3(m_vertexData, topLeft);
-    insertVec3(m_vertexData, N);
-    insertVec2(m_vertexData, tL_UV);
-    insertVec3(m_vertexData, T2);
-    insertVec3(m_vertexData, B2);
-
-    insertVec3(m_vertexData, bottomLeft);
-    insertVec3(m_vertexData, N);
-    insertVec2(m_vertexData, bL_UV);
-    insertVec3(m_vertexData, T2);
-    insertVec3(m_vertexData, B2);
-
-    insertVec3(m_vertexData, bottomRight);
-    insertVec3(m_vertexData, N);
-    insertVec2(m_vertexData, bR_UV);
-    insertVec3(m_vertexData, T2);
-    insertVec3(m_vertexData, B2);
-}
-
-void Cone::makeSlopeTile(glm::vec3 topLeft,
-                         glm::vec3 topRight,
-                         glm::vec3 bottomLeft,
-                         glm::vec3 bottomRight)
+void Cone::makeSlopeTile(const glm::vec3& topLeft,
+                         const glm::vec3& topRight,
+                         const glm::vec3& bottomLeft,
+                         const glm::vec3& bottomRight)
 {
     bool tip = topLeft.y == m_radius;
 
@@ -172,7 +117,7 @@ void Cone::makeCapSlice(float currentTheta, float nextTheta){
              radii[v + 1] * glm::sin(nextTheta)
         };
 
-        makeCapTile(tL, tR, bL, bR);
+        makePlaneTile(tL, tR, bL, bR);
     }
 }
 
@@ -222,15 +167,9 @@ void Cone::makeWedge(float currentTheta, float nextTheta) {
 }
 
 void Cone::setVertexData() {
-    std::vector<float> theta;
-
     float step = glm::radians(360.f / m_param2);
 
-    for (int i = 0; i <= m_param2; ++i) {
-        theta.push_back(i * step);
-    }
-
-    for (int c = 0; c < m_param2; ++c) {
-        makeWedge(theta[c], theta[c + 1]);
+    for (int i = 0; i < m_param2; ++i) {
+        makeWedge(i * step, (i + 1) * step);
     }
 }

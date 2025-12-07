@@ -15,14 +15,10 @@ public:
 private:
     void setVertexData() override;
 
-    void makeTile(glm::vec3 topLeft,
-                  glm::vec3 topRight,
-                  glm::vec3 bottomLeft,
-                  glm::vec3 bottomRight);
-    void makeFace(glm::vec3 topLeft,
-                  glm::vec3 topRight,
-                  glm::vec3 bottomLeft,
-                  glm::vec3 bottomRight);
+    void makeFace(const glm::vec3& topLeft,
+                  const glm::vec3& topRight,
+                  const glm::vec3& bottomLeft,
+                  const glm::vec3& bottomRight);
 };
 
 #endif // CUBE_H

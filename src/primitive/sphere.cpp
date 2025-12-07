@@ -7,7 +7,7 @@ void Sphere::updateParams(int param1, int param2) {
     setVertexData();
 }
 
-glm::vec2 Sphere::calcUV(glm::vec3& pt) {
+glm::vec2 Sphere::calcUV(const glm::vec3& pt) {
     glm::vec2 uv{0.f};
 
     float theta = atan2(pt.z, pt.x);
@@ -24,10 +24,10 @@ glm::vec2 Sphere::calcUV(glm::vec3& pt) {
     return uv;
 }
 
-void Sphere::makeTile(glm::vec3 topLeft,
-                      glm::vec3 topRight,
-                      glm::vec3 bottomLeft,
-                      glm::vec3 bottomRight)
+void Sphere::makeTile(const glm::vec3& topLeft,
+                      const glm::vec3& topRight,
+                      const glm::vec3& bottomLeft,
+                      const glm::vec3& bottomRight)
 {
     glm::vec3 tL_N = glm::normalize(topLeft);
     glm::vec3 bR_N = glm::normalize(bottomRight);
@@ -120,20 +120,10 @@ void Sphere::makeWedge(float currentTheta, float nextTheta) {
     }
 }
 
-void Sphere::makeSphere() {
-    std::vector<float> theta;
-
+void Sphere::setVertexData() {
     float step = glm::radians(360.f / m_param2);
 
-    for (int i = 0; i <= m_param2; ++i) {
-        theta.push_back(i * step);
+    for (int i = 0; i < m_param2; ++i) {
+        makeWedge(i * step, (i + 1) * step);
     }
-
-    for (int c = 0; c < m_param2; ++c) {
-        makeWedge(theta[c], theta[c + 1]);
-    }
-}
-
-void Sphere::setVertexData() {
-    makeSphere();
 }

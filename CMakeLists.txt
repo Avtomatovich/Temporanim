@@ -14,7 +14,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Sets path for finding ASSIMP binaries
-set(CMAKE_PREFIX_PATH C:/assimp)
+if (APPLE)
+    set(CMAKE_PREFIX_PATH /Users/${ENV:USER}/assimp)
+else()
+    set(CMAKE_PREFIX_PATH C:/assimp)
+endif()
 
 # Specifies required Qt components
 find_package(Qt6 REQUIRED COMPONENTS Core)
@@ -52,7 +56,7 @@ add_executable(${PROJECT_NAME}
     src/primitive/sphere.h src/primitive/sphere.cpp
     src/primitive/cone.h src/primitive/cone.cpp
     src/primitive/cylinder.h src/primitive/cylinder.cpp
-    src/primitive/primitive.h
+    src/primitive/primitive.h src/primitive/primitive.cpp
 
     src/camera/camera.h src/camera/camera.cpp
 

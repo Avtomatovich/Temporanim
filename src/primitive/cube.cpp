@@ -6,65 +6,10 @@ void Cube::updateParams(int param1, int param2) {
     setVertexData();
 }
 
-void Cube::makeTile(glm::vec3 topLeft,
-                    glm::vec3 topRight,
-                    glm::vec3 bottomLeft,
-                    glm::vec3 bottomRight)
-{
-    glm::vec3 N = glm::normalize(glm::cross(bottomLeft - topLeft, bottomRight - topLeft));
-
-    glm::vec2 tL_UV = calcPlaneUV(topLeft, N);
-    glm::vec2 bR_UV = calcPlaneUV(bottomRight, N);
-    glm::vec2 tR_UV = calcPlaneUV(topRight, N);
-    glm::vec2 bL_UV = calcPlaneUV(bottomLeft, N);
-
-    auto [T1, B1] = calcTB(topLeft, bottomRight, topRight, tL_UV, bR_UV, tR_UV);
-    auto [T2, B2] = calcTB(topLeft, bottomLeft, bottomRight, tL_UV, bL_UV, bR_UV);
-
-    // triangle 1
-    insertVec3(m_vertexData, topLeft);
-    insertVec3(m_vertexData, N);
-    insertVec2(m_vertexData, tL_UV);
-    insertVec3(m_vertexData, T1);
-    insertVec3(m_vertexData, B1);
-    
-    insertVec3(m_vertexData, bottomRight);
-    insertVec3(m_vertexData, N);
-    insertVec2(m_vertexData, bR_UV);
-    insertVec3(m_vertexData, T1);
-    insertVec3(m_vertexData, B1);
-
-    insertVec3(m_vertexData, topRight);
-    insertVec3(m_vertexData, N);
-    insertVec2(m_vertexData, tR_UV);
-    insertVec3(m_vertexData, T1);
-    insertVec3(m_vertexData, B1);
-
-
-    // triangle 2
-    insertVec3(m_vertexData, topLeft);
-    insertVec3(m_vertexData, N);
-    insertVec2(m_vertexData, tL_UV);
-    insertVec3(m_vertexData, T2);
-    insertVec3(m_vertexData, B2);
-
-    insertVec3(m_vertexData, bottomLeft);
-    insertVec3(m_vertexData, N);
-    insertVec2(m_vertexData, bL_UV);
-    insertVec3(m_vertexData, T2);
-    insertVec3(m_vertexData, B2);
-
-    insertVec3(m_vertexData, bottomRight);
-    insertVec3(m_vertexData, N);
-    insertVec2(m_vertexData, bR_UV);
-    insertVec3(m_vertexData, T2);
-    insertVec3(m_vertexData, B2);
-}
-
-void Cube::makeFace(glm::vec3 topLeft,
-                    glm::vec3 topRight,
-                    glm::vec3 bottomLeft,
-                    glm::vec3 bottomRight)
+void Cube::makeFace(const glm::vec3& topLeft,
+                    const glm::vec3& topRight,
+                    const glm::vec3& bottomLeft,
+                    const glm::vec3& bottomRight)
 {
     float d = 1.f / m_param1;
 
@@ -82,7 +27,7 @@ void Cube::makeFace(glm::vec3 topLeft,
             auto bL = topLeft + ylerp[r + 1] + xlerp[c    ];
             auto bR = topLeft + ylerp[r + 1] + xlerp[c + 1];
 
-            makeTile(tL, tR, bL, bR);
+            makePlaneTile(tL, tR, bL, bR);
         }
     }
 

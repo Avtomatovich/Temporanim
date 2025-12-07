@@ -16,14 +16,14 @@ private:
     void setVertexData() override;
 
     // implicit UV func
-    glm::vec2 calcUV(glm::vec3& pt);
+    glm::vec2 calcUV(const glm::vec3& pt);
 
-    void makeTile(glm::vec3 topLeft,
-                  glm::vec3 topRight,
-                  glm::vec3 bottomLeft,
-                  glm::vec3 bottomRight);
+    void makeTile(const glm::vec3& topLeft,
+                  const glm::vec3& topRight,
+                  const glm::vec3& bottomLeft,
+                  const glm::vec3& bottomRight);
+
     void makeWedge(float currTheta, float nextTheta);
-    void makeSphere();
 };
 
 #endif // SPHERE_H
