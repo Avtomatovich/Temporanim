@@ -52,59 +52,6 @@ void Realtime::finish() {
     this->doneCurrent();
 }
 
-void Realtime::loadShaders() {
-    // Fetch shader directory
-    QDir dir("./resources/shaders");
-
-    // Exit if shader directory does not exist or is empty
-    if (!dir.exists() || dir.isEmpty()) {
-        throw std::runtime_error("Invalid shader directory.");
-    }
-
-    // Fetch list of directory entries
-    QFileInfoList fileInfoList = dir.entryInfoList();
-
-    // Init temp shader file base name
-    QString prevName = "";
-
-    for (int i = 0; i < fileInfoList.size(); ++i) {
-        const QFileInfo& fileInfo = fileInfoList.at(i);
-        if (fileInfo.isFile()) {
-            // Get current file base name
-            QString currName = fileInfo.completeBaseName();
-
-            // Skip if shader has been processed
-            if (currName == prevName) continue;
-
-            // Fetch full current path without file extension
-            QString path = dir.filePath(currName);
-
-            // Fetch shader paths
-            QFileInfo vertexPath(path + ".vert");
-            QFileInfo fragmentPath(path + ".frag");
-
-            // Exit if vertex/fragment shader does not exist
-            if (!vertexPath.exists()) {
-                throw std::runtime_error("Missing vertex shader: " + vertexPath.filePath().toStdString());
-            }
-            if (!fragmentPath.exists()) {
-                throw std::runtime_error("Missing fragment shader: " + fragmentPath.filePath().toStdString());
-            }
-
-            // Create shader program
-            m_shaders.push_back(ShaderLoader::createShaderProgram(
-                vertexPath.filePath().toStdString().c_str(),
-                fragmentPath.filePath().toStdString().c_str()
-            ));
-
-            // Update processed shader name
-            prevName = currName;
-        }
-    }
-
-    glErrorCheck();
-}
-
 void Realtime::initializeGL() {
     m_devicePixelRatio = this->devicePixelRatio();
 
@@ -206,6 +153,60 @@ void Realtime::settingsChanged() {
     m_scene->retessellate(settings.shapeParameter1, settings.shapeParameter2);
 
     update(); // asks for a PaintGL() call to occur
+}
+
+// ================== Auxiliary Functions!
+
+void Realtime::loadShaders() {
+    // Fetch shader directory
+    QDir dir("./resources/shaders");
+
+    // Exit if shader directory does not exist or is empty
+    if (!dir.exists() || dir.isEmpty()) {
+        throw std::runtime_error("Invalid shader directory.");
+    }
+
+    // Fetch list of directory entries
+    QFileInfoList fileInfoList = dir.entryInfoList();
+
+    // Init temp shader file base name
+    std::unordered_set<QString> processed;
+
+    for (int i = 0; i < fileInfoList.size(); ++i) {
+        const QFileInfo& fileInfo = fileInfoList.at(i);
+        if (fileInfo.isFile()) {
+            // Get current file base name
+            QString currName = fileInfo.completeBaseName();
+
+            // Skip if shader has been processed
+            if (processed.contains(currName)) continue;
+
+            // Fetch full current path without file extension
+            QString path = dir.filePath(currName);
+
+            // Fetch shader paths
+            QFileInfo vertexPath(path + ".vert");
+            QFileInfo fragmentPath(path + ".frag");
+
+            // Exit if vertex/fragment shader does not exist
+            if (!vertexPath.exists()) {
+                throw std::runtime_error("Missing vertex shader: " + vertexPath.filePath().toStdString());
+            }
+            if (!fragmentPath.exists()) {
+                throw std::runtime_error("Missing fragment shader: " + fragmentPath.filePath().toStdString());
+            }
+
+            // Create shader program
+            m_shaders.push_back(ShaderLoader::createShaderProgram(
+                vertexPath.filePath().toStdString().c_str(),
+                fragmentPath.filePath().toStdString().c_str()
+            ));
+
+            processed.insert(currName);
+        }
+    }
+
+    glErrorCheck();
 }
 
 void Realtime::toggleFeatures() {
