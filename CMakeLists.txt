@@ -13,19 +13,19 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Sets path for finding ASSIMP binaries
-if (APPLE)
-    set(CMAKE_PREFIX_PATH /Users/${ENV:USER}/assimp)
-else()
-    set(CMAKE_PREFIX_PATH C:/assimp)
-endif()
-
 # Specifies required Qt components
 find_package(Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt6 REQUIRED COMPONENTS Gui)
 find_package(Qt6 REQUIRED COMPONENTS OpenGL)
 find_package(Qt6 REQUIRED COMPONENTS OpenGLWidgets)
 find_package(Qt6 REQUIRED COMPONENTS Xml)
+
+# Sets path for finding ASSIMP binaries
+if (APPLE)
+    set(CMAKE_PREFIX_PATH /Users/${ENV:USER}/assimp)
+elseif(WIN32)
+    set(CMAKE_PREFIX_PATH C:/assimp)
+endif()
 
 # Specifies required ASSIMP binaries
 find_package(assimp REQUIRED)
