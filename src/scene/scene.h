@@ -6,6 +6,7 @@
 #include "camera/camera.h"
 #include "geometry/model.h"
 #include "geometry/geometry.h"
+#include "physics/rigidbody.h"
 #include "texture/texture.h"
 #include "utils/sceneparser.h"
 
@@ -27,22 +28,21 @@ public:
     void retessellate(int param1, int param2);
 
     // camera funcs
-    inline void moveCam(glm::vec3 pos, glm::vec3 look, glm::vec3 up) {
+    inline void moveCam(const glm::vec3& pos,
+                        const glm::vec3& look,
+                        const glm::vec3& up) {
         m_cam.setView(pos, look, up);
     }
     inline void resize(int w, int h) {
         m_cam.setAspectRatio(w * 1.f / h);
     }
-
     inline void updateProjection(float near, float far) {
         m_cam.perspective(near, far);
     }
 
     // anim funcs
     void updateAnim(float dt);
-
     void playAnim();
-
     void swapAnim(bool isNext);
 
     // normal map funcs
@@ -58,6 +58,7 @@ private:
     std::unordered_map<std::string, Texture> m_texMap;
     std::unordered_map<std::string, Model> m_modelMap;
     std::unordered_map<std::string, Animator> m_animMap;
+    std::unordered_map<int, RigidBody> m_physMap;
 
     void addPrim(const RenderShapeData& shape, int param1, int param2);
     const Geometry& getGeom(const RenderShapeData& shape);

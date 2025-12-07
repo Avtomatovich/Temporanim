@@ -48,8 +48,7 @@ void RigidBody::computeAuxiliaryVariables() {
 }
 
 void RigidBody::clearForces() {
-    force = glm::vec3{0.f};
-    torque = glm::vec3{0.f};
+    force = torque = glm::vec3{0.f};
 }
 
 void RigidBody::applyForce(const glm::vec3& f) {
@@ -81,25 +80,19 @@ glm::mat3 RigidBody::computeCubeInertia(float M, const glm::vec3& dim) {
 
 // Inertia tensor for a sphere
 glm::mat3 RigidBody::computeSphereInertia(float M, float r) {
-    return glm::mat3{ (2.f / 5.f) * M * r*r };
+    return glm::scale(glm::mat4{1.f}, glm::vec3{(2.f / 5.f) * M * r*r});
 }
 
 // i tensor for a cylinder along Y axis
 glm::mat3 RigidBody::computeCylinderInertia(float M, float r, float h) {
     float Ixx = M * (3 * r*r + h*h) / 12.f;
     float Iyy = M * r*r / 2.f;
-
-    return glm::mat3{Ixx, 0.f, 0.f,
-                     0.f, Iyy, 0.f,
-                     0.f, 0.f, Ixx};
+    return glm::scale(glm::mat4{1.f}, {Ixx, Iyy, Ixx});
 }
 
 // i tensor for a cone along Y axis
 glm::mat3 RigidBody::computeConeInertia(float M, float r, float h) {
     float Ixx = M * (3 * r*r / 20.f + h*h / 10.f);
     float Iyy = 3 * M * r*r / 10.f;
-
-    return glm::mat3{Ixx, 0.f, 0.f,
-                     0.f, Iyy, 0.f,
-                     0.f, 0.f, Ixx};
+    return glm::scale(glm::mat4{1.f}, {Ixx, Iyy, Ixx});
 }

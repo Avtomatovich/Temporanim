@@ -87,6 +87,7 @@ bool SceneParser::parse(std::string filepath, RenderData &renderData) {
 
     renderData.lights.clear();
     renderData.shapes.clear();
+    renderData.animData.clear();
 
     buildRenderData(renderData, fileReader.getRootNode(), glm::mat4{1.f});
 

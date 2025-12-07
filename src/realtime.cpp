@@ -52,28 +52,7 @@ void Realtime::finish() {
     this->doneCurrent();
 }
 
-void Realtime::initializeGL() {
-    m_devicePixelRatio = this->devicePixelRatio();
-
-    m_timer = startTimer(1000/60);
-    m_elapsedTimer.start();
-
-    // Initializing GL.
-    // GLEW (GL Extension Wrangler) provides access to OpenGL functions.
-    glewExperimental = GL_TRUE;
-    GLenum err = glewInit();
-    if (err != GLEW_OK) {
-        std::cerr << "Error while initializing GL: " << glewGetErrorString(err) << std::endl;
-    }
-    std::cout << "Initialized GL: Version " << glewGetString(GLEW_VERSION) << std::endl;
-
-    // Allows OpenGL to draw objects appropriately on top of one another
-    glEnable(GL_DEPTH_TEST);
-    // Tells OpenGL to only draw the front face
-    glEnable(GL_CULL_FACE);
-    // Tells OpenGL how big the screen is
-    glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
-
+void Realtime::loadShaders() {
     // Fetch shader directory
     QDir dir("./resources/shaders");
 
@@ -124,6 +103,31 @@ void Realtime::initializeGL() {
     }
 
     glErrorCheck();
+}
+
+void Realtime::initializeGL() {
+    m_devicePixelRatio = this->devicePixelRatio();
+
+    m_timer = startTimer(1000/60);
+    m_elapsedTimer.start();
+
+    // Initializing GL.
+    // GLEW (GL Extension Wrangler) provides access to OpenGL functions.
+    glewExperimental = GL_TRUE;
+    GLenum err = glewInit();
+    if (err != GLEW_OK) {
+        std::cerr << "Error while initializing GL: " << glewGetErrorString(err) << std::endl;
+    }
+    std::cout << "Initialized GL: Version " << glewGetString(GLEW_VERSION) << std::endl;
+
+    // Allows OpenGL to draw objects appropriately on top of one another
+    glEnable(GL_DEPTH_TEST);
+    // Tells OpenGL to only draw the front face
+    glEnable(GL_CULL_FACE);
+    // Tells OpenGL how big the screen is
+    glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
+
+    loadShaders();
 }
 
 void Realtime::paintGL() {
@@ -202,6 +206,24 @@ void Realtime::settingsChanged() {
     m_scene->retessellate(settings.shapeParameter1, settings.shapeParameter2);
 
     update(); // asks for a PaintGL() call to occur
+}
+
+void Realtime::toggleFeatures() {
+    // Play/pause animation
+    if (m_keyMap[Qt::Key_P] && !m_pToggled) m_scene->playAnim();
+
+    // Save toggle state to avoid per-frame checks
+    m_pToggled = m_keyMap[Qt::Key_P];
+
+    // Swap to previous animation if pressing left arrow, else to next if right arrow
+    if (m_keyMap[Qt::Key_Left]) m_scene->swapAnim(false);
+    else if (m_keyMap[Qt::Key_Right]) m_scene->swapAnim(true);
+
+    // Toggle normal mapping
+    if (m_keyMap[Qt::Key_N] && !m_nToggled) m_scene->toggleNormalMap();
+
+    // Save toggle state to avoid per-frame checks
+    m_nToggled = m_keyMap[Qt::Key_N];
 }
 
 // ================== Camera Movement!
@@ -291,21 +313,8 @@ void Realtime::timerEvent(QTimerEvent *event) {
     // Update animation
     m_scene->updateAnim(deltaTime);
 
-    // Play/pause animation
-    if (m_keyMap[Qt::Key_P] && !m_pToggled) m_scene->playAnim();
-
-    // Save toggle state to avoid per-frame checks
-    m_pToggled = m_keyMap[Qt::Key_P];
-
-    // Swap to previous animation if pressing left arrow, else to next if right arrow
-    if (m_keyMap[Qt::Key_Left]) m_scene->swapAnim(false);
-    else if (m_keyMap[Qt::Key_Right]) m_scene->swapAnim(true);
-
-    // Toggle normal mapping
-    if (m_keyMap[Qt::Key_N] && !m_nToggled) m_scene->toggleNormalMap();
-
-    // Save toggle state to avoid per-frame checks
-    m_nToggled = m_keyMap[Qt::Key_N];
+    // Toggle features
+    toggleFeatures();
 
     update(); // asks for a PaintGL() call to occur
 }
