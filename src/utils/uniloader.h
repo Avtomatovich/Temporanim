@@ -6,6 +6,7 @@
 #include "camera/camera.h"
 #include "texture/texture.h"
 #include "animation/animator.h"
+#include "physics/rigidbody.h"
 
 namespace UniLoader
 {
@@ -20,6 +21,8 @@ namespace UniLoader
     void passTextureVars(GLuint shader, const Texture& texture);
 
     void passBoneVars(GLuint shader, const Animator& animator);
+
+    void passPhysVars(GLuint shader, const RigidBody& rigidBody);
 }
 
 #endif // UNILOADER_H

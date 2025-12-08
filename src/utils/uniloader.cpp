@@ -192,4 +192,18 @@ namespace UniLoader
         }
     }
 
+    void passPhysVars(GLuint shader, const RigidBody& rigidBody) {
+        GLint model = glGetUniformLocation(shader, "model");
+        GLint modelInvT = glGetUniformLocation(shader, "modelInvT");
+
+        if (model == -1 || modelInvT == -1) {
+            throw std::invalid_argument("Missing model matrix uniform variables");
+        }
+
+        glm::mat4 transform = rigidBody.getTransformMatrix();
+
+        glUniformMatrix4fv(model, 1, GL_FALSE, &transform[0][0]);
+        glUniformMatrix3fv(modelInvT, 1, GL_TRUE, &glm::mat3{glm::inverse(transform)}[0][0]);
+    }
+
 }
