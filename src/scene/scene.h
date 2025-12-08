@@ -20,9 +20,9 @@ public:
           float near, float far,
           int param1, int param2);
 
-    void clean();
-
     bool draw(GLuint shader);
+
+    void clean();
 
     // tessellation funcs
     void retessellate(int param1, int param2);
@@ -30,23 +30,24 @@ public:
     // camera funcs
     inline void moveCam(const glm::vec3& pos,
                         const glm::vec3& look,
-                        const glm::vec3& up) {
-        m_cam.setView(pos, look, up);
-    }
-    inline void resize(int w, int h) {
-        m_cam.setAspectRatio(w * 1.f / h);
-    }
-    inline void updateProjection(float near, float far) {
-        m_cam.perspective(near, far);
-    }
+                        const glm::vec3& up) { m_cam.setView(pos, look, up); }
+    inline void resize(int w, int h) { m_cam.setAspectRatio(w * 1.f / h); }
+    inline void updateProj(float near, float far) { m_cam.perspective(near, far); }
 
     // anim funcs
     void updateAnim(float dt);
     void playAnim();
     void swapAnim(bool isNext);
 
-    // normal map funcs
+    // normal map func
     void toggleNormalMap();
+
+    // phys funcs
+    void updatePhys(float dt);
+
+    inline void enableGravity(bool toggle) { m_gravityEnabled = toggle; }
+    inline void enableRotation(bool toggle) { m_torqueEnabled = toggle; }
+    inline void enableCollisions(bool toggle) { m_collisionsEnabled = toggle; }
 
 private:
     SceneGlobalData m_global;
@@ -65,6 +66,10 @@ private:
     int getGeomKey(const RenderShapeData& shape);
 
     bool m_normalMapToggled = true;
+
+    bool m_gravityEnabled = false;
+    bool m_torqueEnabled = false;
+    bool m_collisionsEnabled = false;
 };
 
 #endif // SCENE_H

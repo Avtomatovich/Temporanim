@@ -147,9 +147,13 @@ void Realtime::settingsChanged() {
     if (!m_scene.has_value()) return;
 
     // Update projection matrix based on updated variables
-    m_scene->updateProjection(settings.nearPlane, settings.farPlane);
+    m_scene->updateProj(settings.nearPlane, settings.farPlane);
     // Retessellate based on update variables
     m_scene->retessellate(settings.shapeParameter1, settings.shapeParameter2);
+    // Toggle physics bools based on settings params
+    m_scene->enableGravity(settings.enableGravity);
+    m_scene->enableRotation(settings.enableRotation);
+    m_scene->enableCollisions(settings.enableCollisions);
 
     update(); // asks for a PaintGL() call to occur
 }
@@ -260,6 +264,9 @@ void Realtime::timerEvent(QTimerEvent *event) {
 
     // Update animation
     m_scene->updateAnim(deltaTime);
+
+    // Update physics
+    m_scene->updatePhys(deltaTime);
 
     // Toggle features
     toggleFeatures();

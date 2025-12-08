@@ -27,7 +27,9 @@ Scene::Scene(const RenderData& metaData,
         far
     };
 
-    for (RenderShapeData& shape : m_shapes) {
+    for (int i = 0; i < m_shapes.size(); ++i) {
+        RenderShapeData& shape = m_shapes[i];
+
         const std::string& meshfile = shape.primitive.meshfile;
 
         // Add model to model map if not present
@@ -51,6 +53,12 @@ Scene::Scene(const RenderData& metaData,
             if (!m_primMap.contains(getGeomKey(shape))) {
                 addPrim(shape, param1, param2);
             }
+
+            // Add rigid body to phys map if dynamic
+            if (shape.primitive.isDynamic) {
+                // Use default mass of 1.f
+                m_physMap.emplace(i, RigidBody{shape.primitive.type, 1.f, shape.ctm});
+            }
         }
 
         // Add texture map to slot 0 if used
@@ -73,14 +81,6 @@ Scene::Scene(const RenderData& metaData,
     }
 }
 
-void Scene::clean() {
-    for (auto& prim : m_primMap) prim.second.clean();
-
-    for (auto& model : m_modelMap) model.second.clean();
-
-    for (auto& tex : m_texMap) tex.second.clean();
-}
-
 bool Scene::draw(GLuint shader) {
     glErrorCheck();
 
@@ -95,8 +95,9 @@ bool Scene::draw(GLuint shader) {
         }
     }
 
-    for (const auto& shape : m_shapes) {
-        const Geometry& geom = getGeom(shape);
+    for (int i = 0; i < m_shapes.size(); ++i) {
+        // Fetch current shape
+        const RenderShapeData& shape = m_shapes[i];
 
         // Activate diffuse map slot if available
         if (shape.primitive.material.textureMap.isUsed) {
@@ -118,15 +119,19 @@ bool Scene::draw(GLuint shader) {
             passTextureVars(shader, texture);
         }
 
-        // pass ctms
         passShapeVars(shader, shape);
 
+        // Fetch animation if present
         if (m_animMap.contains(shape.primitive.meshfile)) {
-            const Animator& animator = m_animMap.at(shape.primitive.meshfile);
-            if (animator.hasAnim()) passBoneVars(shader, animator);
+            passBoneVars(shader, m_animMap.at(shape.primitive.meshfile));
         }
 
-        geom.draw();
+        // Fetch physics state if dynamic
+        if (m_physMap.contains(i)) {
+            passPhysVars(shader, m_physMap.at(i));
+        }
+
+        getGeom(shape).draw();
 
         glBindTexture(GL_TEXTURE_2D, 0);
     }
@@ -136,10 +141,50 @@ bool Scene::draw(GLuint shader) {
     return true;
 }
 
-void Scene::retessellate(int param1, int param2) {
-    for (auto& prim : m_primMap) {
-        prim.second.updateTesselParams(param1, param2);
+void Scene::addPrim(const RenderShapeData& shape, int param1, int param2) {
+    int key = getGeomKey(shape);
+    switch(shape.primitive.type) {
+    case PrimitiveType::PRIMITIVE_CUBE:
+        m_primMap.emplace(key, std::make_unique<Cube>(param1));
+        break;
+    case PrimitiveType::PRIMITIVE_CONE:
+        m_primMap.emplace(key, std::make_unique<Cone>(param1, param2));
+        break;
+    case PrimitiveType::PRIMITIVE_CYLINDER:
+        m_primMap.emplace(key, std::make_unique<Cylinder>(param1, param2));
+        break;
+    case PrimitiveType::PRIMITIVE_SPHERE:
+        m_primMap.emplace(key, std::make_unique<Sphere>(param1, param2));
+        break;
+    case PrimitiveType::PRIMITIVE_MESH:
+        break;
     }
+}
+
+const Geometry& Scene::getGeom(const RenderShapeData& shape) {
+    int key = getGeomKey(shape);
+
+    return m_modelMap.contains(shape.primitive.meshfile) ?
+               m_modelMap.at(shape.primitive.meshfile).getGeom(key) :
+               m_primMap.at(key);
+}
+
+int Scene::getGeomKey(const RenderShapeData& shape) {
+    return shape.primitive.type == PrimitiveType::PRIMITIVE_MESH ?
+               shape.id :
+               static_cast<int>(shape.primitive.type);
+}
+
+void Scene::clean() {
+    for (auto& prim : m_primMap) prim.second.clean();
+
+    for (auto& model : m_modelMap) model.second.clean();
+
+    for (auto& tex : m_texMap) tex.second.clean();
+}
+
+void Scene::retessellate(int param1, int param2) {
+    for (auto& prim : m_primMap) prim.second.updateParams(param1, param2);
 }
 
 void Scene::updateAnim(float dt) {
@@ -158,36 +203,35 @@ void Scene::toggleNormalMap() {
     m_normalMapToggled = !m_normalMapToggled;
 }
 
-void Scene::addPrim(const RenderShapeData& shape, int param1, int param2) {
-    int key = getGeomKey(shape);
-    switch(shape.primitive.type) {
-        case PrimitiveType::PRIMITIVE_CUBE:
-            m_primMap.emplace(key, std::make_unique<Cube>(param1));
-            break;
-        case PrimitiveType::PRIMITIVE_CONE:
-            m_primMap.emplace(key, std::make_unique<Cone>(param1, param2));
-            break;
-        case PrimitiveType::PRIMITIVE_CYLINDER:
-            m_primMap.emplace(key, std::make_unique<Cylinder>(param1, param2));
-            break;
-        case PrimitiveType::PRIMITIVE_SPHERE:
-            m_primMap.emplace(key, std::make_unique<Sphere>(param1, param2));
-            break;
-        case PrimitiveType::PRIMITIVE_MESH:
-            break;
+void Scene::updatePhys(float dt) {
+    if (!m_gravityEnabled && !m_torqueEnabled && !m_collisionsEnabled) {
+        for (auto& [_, rb] : m_physMap) rb.reset();
+        return;
     }
-}
 
-const Geometry& Scene::getGeom(const RenderShapeData& shape) {
-    const std::string& meshfile = shape.primitive.meshfile;
-    int key = getGeomKey(shape);
+    for (auto& [_, rb] : m_physMap) rb.clearForces();
 
-    return meshfile.empty() ? m_primMap.at(key) :
-               m_modelMap.at(meshfile).getGeom(key);
-}
+    //  gravity
+    if (m_gravityEnabled) {
+        for (auto& [_, rb] : m_physMap) rb.applyForce();
+    }
 
-int Scene::getGeomKey(const RenderShapeData& shape) {
-    PrimitiveType type = shape.primitive.type;
-    return type == PrimitiveType::PRIMITIVE_MESH ? shape.id :
-               static_cast<int>(type);
+    // torque
+    if (m_torqueEnabled) {
+        for (auto& [id, rb] : m_physMap) {
+            glm::vec3 axis = glm::normalize(glm::vec3{
+                std::sin(id * 1.23f),
+                std::cos(id * 4.56f),
+                std::sin(id * 7.89f)
+            });
+            rb.torque += axis * 3.0f;
+        }
+    }
+
+    for (auto& [_, rb] : m_physMap) rb.integrate(dt);
+
+    // bouncing
+    if (m_collisionsEnabled) {
+        for (auto& [_, rb] : m_physMap) rb.bounceSphere(m_groundY);
+    }
 }
