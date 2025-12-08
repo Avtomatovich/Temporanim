@@ -71,8 +71,8 @@ private slots:
     void onValChangeFarBox(double newValue);
 
     // Extra Credit:
-    void onExtraCredit1();
-    void onExtraCredit2();
-    void onExtraCredit3();
+    void onEnableGravity();
+    void onEnableRotation();
+    void onEnableBouncing();
     void onExtraCredit4();
 };

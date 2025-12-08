@@ -148,15 +148,15 @@ void MainWindow::initialize() {
 
     // Extra Credit:
     ec1 = new QCheckBox();
-    ec1->setText(QStringLiteral("Extra Credit 1"));
+    ec1->setText(QStringLiteral("Enable Gravity"));
     ec1->setChecked(false);
 
     ec2 = new QCheckBox();
-    ec2->setText(QStringLiteral("Extra Credit 2"));
+    ec2->setText(QStringLiteral("Enable Rotation"));
     ec2->setChecked(false);
 
     ec3 = new QCheckBox();
-    ec3->setText(QStringLiteral("Extra Credit 3"));
+    ec3->setText(QStringLiteral("Enable Sphere Bouncing"));
     ec3->setChecked(false);
 
     ec4 = new QCheckBox();
@@ -259,9 +259,9 @@ void MainWindow::connectFar() {
 }
 
 void MainWindow::connectExtraCredit() {
-    connect(ec1, &QCheckBox::clicked, this, &MainWindow::onExtraCredit1);
-    connect(ec2, &QCheckBox::clicked, this, &MainWindow::onExtraCredit2);
-    connect(ec3, &QCheckBox::clicked, this, &MainWindow::onExtraCredit3);
+    connect(ec1, &QCheckBox::clicked, this, &MainWindow::onEnableGravity);
+    connect(ec2, &QCheckBox::clicked, this, &MainWindow::onEnableRotation);
+    connect(ec3, &QCheckBox::clicked, this, &MainWindow::onEnableBouncing);
     connect(ec4, &QCheckBox::clicked, this, &MainWindow::onExtraCredit4);
 }
 
@@ -356,18 +356,18 @@ void MainWindow::onValChangeFarBox(double newValue) {
 
 // Extra Credit:
 
-void MainWindow::onExtraCredit1() {
-    settings.extraCredit1 = !settings.extraCredit1;
+void MainWindow::onEnableGravity() {
+    settings.enableGravity = !settings.enableGravity;
     realtime->settingsChanged();
 }
 
-void MainWindow::onExtraCredit2() {
-    settings.extraCredit2 = !settings.extraCredit2;
+void MainWindow::onEnableRotation() {
+    settings.enableRotation = !settings.enableRotation;
     realtime->settingsChanged();
 }
 
-void MainWindow::onExtraCredit3() {
-    settings.extraCredit3 = !settings.extraCredit3;
+void MainWindow::onEnableBouncing() {
+    settings.enableBouncing = !settings.enableBouncing;
     realtime->settingsChanged();
 }
 
