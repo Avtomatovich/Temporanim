@@ -73,6 +73,6 @@ private slots:
     // Extra Credit:
     void onEnableGravity();
     void onEnableRotation();
-    void onEnableBouncing();
+    void onEnableCollisions();
     void onExtraCredit4();
 };

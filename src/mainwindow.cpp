@@ -261,7 +261,7 @@ void MainWindow::connectFar() {
 void MainWindow::connectExtraCredit() {
     connect(ec1, &QCheckBox::clicked, this, &MainWindow::onEnableGravity);
     connect(ec2, &QCheckBox::clicked, this, &MainWindow::onEnableRotation);
-    connect(ec3, &QCheckBox::clicked, this, &MainWindow::onEnableBouncing);
+    connect(ec3, &QCheckBox::clicked, this, &MainWindow::onEnableCollisions);
     connect(ec4, &QCheckBox::clicked, this, &MainWindow::onExtraCredit4);
 }
 
@@ -366,8 +366,8 @@ void MainWindow::onEnableRotation() {
     realtime->settingsChanged();
 }
 
-void MainWindow::onEnableBouncing() {
-    settings.enableBouncing = !settings.enableBouncing;
+void MainWindow::onEnableCollisions() {
+    settings.enableCollisions = !settings.enableCollisions;
     realtime->settingsChanged();
 }
 

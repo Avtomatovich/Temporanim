@@ -21,13 +21,11 @@ public:
 
     void bounceSphere(float groundY);
 
-    bool enableGravity = false;
-
 private:
-    glm::vec3 x{0.f};                   // position x(t) - center of mass
-    glm::quat q{1.f, 0.f, 0.f, 0.f};    // orientation q(t) as quaternion
-    glm::vec3 P{0.f};                   // linear momentum P(t)
-    glm::vec3 L{0.f};                   // angular momentum L(t)
+    glm::vec3 x_t{0.f};                   // position x(t) - center of mass
+    glm::quat q_t{1.f, 0.f, 0.f, 0.f};    // orientation q(t) as quaternion
+    glm::vec3 P_t{0.f};                   // linear momentum P(t)
+    glm::vec3 L_t{0.f};                   // angular momentum L(t)
     float mass = 1.f;                   // m
 
     // derived state

@@ -17,7 +17,7 @@ Geometry::Geometry(std::unique_ptr<Mesh> mesh) :
     genMesh();
 }
 
-void Geometry::updateTesselParams(int param1, int param2) {
+void Geometry::updateParams(int param1, int param2) {
     if (!m_prim) return;
     m_prim->updateParams(param1, param2);
     genPrim();

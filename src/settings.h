@@ -13,7 +13,7 @@ struct Settings {
     bool kernelBasedFilter = false;
     bool enableGravity = false;
     bool enableRotation = false;
-    bool enableBouncing = false;
+    bool enableCollisions = false;
     bool extraCredit4 = false;
 };
 

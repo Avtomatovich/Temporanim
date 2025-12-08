@@ -74,6 +74,7 @@ add_executable(${PROJECT_NAME}
     src/utils/modelparser.h src/utils/modelparser.cpp
 
     src/animation/animator.h src/animation/animator.cpp
+
     src/physics/rigidbody.h src/physics/rigidbody.cpp
 )
 

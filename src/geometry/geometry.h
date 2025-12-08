@@ -13,7 +13,7 @@ public:
 
     Geometry(std::unique_ptr<Mesh> mesh);
 
-    void updateTesselParams(int param1, int param2);
+    void updateParams(int param1, int param2);
 
     void draw() const;
 

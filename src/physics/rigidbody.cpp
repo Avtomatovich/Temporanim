@@ -37,7 +37,7 @@ RigidBody::RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initialT
 
 void RigidBody::reset() {
     // initial pos
-    x = ctm[3];
+    x_t = ctm[3];
 
     // store scale
     scale = glm::vec3{
@@ -47,20 +47,20 @@ void RigidBody::reset() {
     };
 
     // to quaternion
-    q = glm::quat_cast(glm::mat3{
+    q_t = glm::quat_cast(glm::mat3{
                             glm::normalize(glm::vec3{ctm[0]}),
                             glm::normalize(glm::vec3{ctm[1]}),
                             glm::normalize(glm::vec3{ctm[2]})
                         });
 
-    P = L = glm::vec3{0.f};
+    P_t = L_t = glm::vec3{0.f};
     clearForces();
     computeAuxiliaryVariables();
 }
 
 glm::mat4 RigidBody::getTransformMatrix() const {
     // Translation * Rotation * Scale
-    glm::mat4 T = glm::translate(glm::mat4{1.f}, x);
+    glm::mat4 T = glm::translate(glm::mat4{1.f}, x_t);
     glm::mat4 S = glm::scale(glm::mat4{1.f}, scale);
 
     return T * R * S;
@@ -68,35 +68,35 @@ glm::mat4 RigidBody::getTransformMatrix() const {
 
 void RigidBody::computeAuxiliaryVariables() {
     // v(t) = P(t) / M
-    v = P / mass;
+    v = P_t / mass;
 
     // quaternion to rotation matrix: R(t) = matrix(q(t))
-    q = glm::normalize(q);
-    R = glm::toMat4(q);
+    q_t = glm::normalize(q_t);
+    R = glm::toMat4(q_t);
 
     glm::mat3 R3{R};
 
     // world space inverse inertia
     glm::mat3 Iinv = R3 * IbodyInv * glm::transpose(R3);
 
-    omega = Iinv * L;
+    omega = Iinv * L_t;
 }
 
 void RigidBody::integrate(float dt) {
     computeAuxiliaryVariables();
 
     glm::quat omega_quat{0.f, omega};
-    glm::quat q_dot = 0.5f * (omega_quat * q);
+    glm::quat q_dot = 0.5f * (omega_quat * q_t);
 
     // euler integration
-    x += v * dt;
-    P += force * dt;
-    L += torque * dt;
-    q += q_dot * dt;
+    x_t += v * dt;
+    q_t += q_dot * dt;
+    P_t += force * dt;
+    L_t += torque * dt;
 
     //damping
-    P *= 0.99f;
-    L *= 0.99f;
+    P_t *= 0.99f;
+    L_t *= 0.99f;
 }
 
 void RigidBody::clearForces() {
@@ -111,12 +111,12 @@ void RigidBody::applyForceAtPoint(const glm::vec3& point) {
     applyForce();
 
     // torque
-    torque += glm::cross(point - x, mass * gravity);
+    torque += glm::cross(point - x_t, mass * gravity);
 }
 
 void RigidBody::applyImpulse(const glm::vec3& impulse) {
     // momentum directly
-    P += impulse;
+    P_t += impulse;
 }
 
 void RigidBody::bounceSphere(float groundY) {
@@ -126,10 +126,10 @@ void RigidBody::bounceSphere(float groundY) {
     float radius = scale.x * 0.5f;
 
     // if sphere hit ground
-    float bottomY = x.y - radius;
+    float bottomY = x_t.y - radius;
 
     if (bottomY <= groundY) {
-        x.y = groundY + radius;
+        x_t.y = groundY + radius;
 
         // bounciness
         float restitution = 0.7f;
@@ -137,16 +137,15 @@ void RigidBody::bounceSphere(float groundY) {
         if (v.y < 0) {
             v.y = -v.y * restitution;
 
-            // new linear momentum to match new velocity
-            P = mass * v;
-
             // reduce horizontal velocity on impact
             v.x *= 0.9f;
             v.z *= 0.9f;
-            P = mass * v;
+
+            // new linear momentum to match new velocity
+            P_t = mass * v;
 
             // reduce spin on impact
-            L *= 0.95f;
+            L_t *= 0.95f;
         }
     }
 }
