@@ -808,7 +808,7 @@ bool ScenefileReader::parsePrimitive(const QJsonObject &prim, SceneNode *node) {
     QStringList requiredFields = {"type"};
     QStringList optionalFields = {
         "meshFile", "ambient", "diffuse", "specular", "reflective", "transparent", "shininess", "ior",
-        "blend", "textureFile", "textureU", "textureV", "bumpMapFile", "bumpMapU", "bumpMapV"};
+        "blend", "textureFile", "textureU", "textureV", "bumpMapFile", "bumpMapU", "bumpMapV", "dynamic"};
 
     QStringList allFields = requiredFields + optionalFields;
     for (auto field : prim.keys()) {
@@ -1024,6 +1024,15 @@ bool ScenefileReader::parsePrimitive(const QJsonObject &prim, SceneNode *node) {
         mat.bumpMap.repeatU = prim.contains("bumpMapU") && prim["bumpMapU"].isDouble() ? prim["bumpMapU"].toDouble() : 1;
         mat.bumpMap.repeatV = prim.contains("bumpMapV") && prim["bumpMapV"].isDouble() ? prim["bumpMapV"].toDouble() : 1;
         mat.bumpMap.isUsed = true;
+    }
+
+    if (prim.contains("dynamic")) {
+        if (!prim["dynamic"].isBool()) {
+            std::cout << "primitive dynamic must be of type bool" << std::endl;
+            return false;
+        }
+
+        primitive->isDynamic = prim["static"].toBool();
     }
 
     return true;
