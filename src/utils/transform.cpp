@@ -1,4 +1,5 @@
 #include "transform.h"
+#include "glm/ext/matrix_transform.hpp"
 
 namespace Transform
 {
@@ -40,21 +41,57 @@ namespace Transform
         };
     }
 
-    aiMatrix4x4 getAiMat(const glm::mat4& mat) {
-        aiMatrix4x4 res;
-        res.a1 = mat[0][0], res.a2 = mat[1][0], res.a3 = mat[2][0], res.a4 = mat[3][0];
-        res.b1 = mat[0][1], res.b2 = mat[1][1], res.b3 = mat[2][1], res.b4 = mat[3][1];
-        res.c1 = mat[0][2], res.c2 = mat[1][2], res.c3 = mat[2][2], res.c4 = mat[3][2];
-        res.d1 = mat[0][3], res.d2 = mat[1][3], res.d3 = mat[2][3], res.d4 = mat[3][3];
-        return res;
-    }
-
-    glm::mat4 getGlmMat(const aiMatrix4x4& mat) {
+    glm::mat4 toGlmMat(const aiMatrix4x4& mat) {
         return glm::mat4{
             mat.a1, mat.b1, mat.c1, mat.d1,
             mat.a2, mat.b2, mat.c2, mat.d2,
             mat.a3, mat.b3, mat.c3, mat.d3,
             mat.a4, mat.b4, mat.c4, mat.d4
+        };
+    }
+
+    // Baraff equation (5-3)
+    glm::mat3 computeCubeInertia(float M, const glm::vec3& dim) {
+        float w = dim.x, h = dim.y, d = dim.z;
+        return glm::scale(glm::mat4{1.f}, {
+                                              M / 12.f * (h*h + d*d),
+                                              M / 12.f * (w*w + d*d),
+                                              M / 12.f * (w*w + h*h)
+                                          });
+    }
+
+    // Inertia tensor for a sphere
+    glm::mat3 computeSphereInertia(float M, float r) {
+        float I = (2.f / 5.f) * M * r*r;
+
+        return glm::mat3{
+            I, 0.f, 0.f,
+            0.f, I, 0.f,
+            0.f, 0.f, I
+        };
+    }
+
+    // Inertia tensor for a cylinder along Y axis
+    glm::mat3 computeCylinderInertia(float M, float r, float h) {
+        float Ixx = M * (3 * r*r + h*h) / 12.f;
+        float Iyy = M * r*r / 2.f;
+
+        return glm::mat3{
+            Ixx, 0.f, 0.f,
+            0.f, Iyy, 0.f,
+            0.f, 0.f, Ixx
+        };
+    }
+
+    // Inertia tensor for a cone along Y axis
+    glm::mat3 computeConeInertia(float M, float r, float h) {
+        float Ixx = M * (3 * r*r / 20.f + h*h / 10.f);
+        float Iyy = 3 * M * r*r / 10.f;
+
+        return glm::mat3{
+            Ixx, 0.f, 0.f,
+            0.f, Iyy, 0.f,
+            0.f, 0.f, Ixx
         };
     }
 

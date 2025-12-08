@@ -215,7 +215,7 @@ namespace ModelParser {
         }
 
         // Compose transformation
-        ctm *= Transform::getGlmMat(node->mTransformation);
+        ctm *= Transform::toGlmMat(node->mTransformation);
 
         // Fetch const ref to shape's meshfile
         const std::string& meshfile = primitive->meshfile;
@@ -307,7 +307,7 @@ namespace ModelParser {
                         // Add bone to skeleton
                         skeleton.push_back({
                             name,
-                            Transform::getGlmMat(bone->mOffsetMatrix)
+                            Transform::toGlmMat(bone->mOffsetMatrix)
                         });
                     }
 
