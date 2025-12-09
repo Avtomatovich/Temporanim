@@ -6,7 +6,7 @@ This project uses ASSIMP to load meshes. This repo includes a slimmed-down versi
 
 * Cut and paste the ASSIMP folder to your root directory.
     * For Windows users, your path would be `C:\assimp`.
-    * For Mac users, your path would be `/Users/{username}/assimp/build`
+    * For Mac users, your path would be `/Users/{username}/assimp`
 * Use your preferred build managing software to build the ASSIMP source code. If you use the CMake GUI, do the following:
     1. Select the source folder to be the path of where you copied your ASSIMP folder to.
     2. Create a folder called build in your ASSIMP directory (e.g. `C:\assimp\build`).
