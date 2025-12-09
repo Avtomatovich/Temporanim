@@ -218,20 +218,20 @@ void Scene::updatePhys(float dt) {
 
     // torque
     if (m_torqueEnabled) {
-        for (auto& [id, rb] : m_physMap) {
-            glm::vec3 axis = glm::normalize(glm::vec3{
-                std::sin(id * 1.23f),
-                std::cos(id * 4.56f),
-                std::sin(id * 7.89f)
-            });
-            rb.torque += axis * 3.0f;
-        }
+        // for (auto& [id, rb] : m_physMap) {
+        //     glm::vec3 axis = glm::normalize(glm::vec3{
+        //         std::sin(id * 1.23f),
+        //         std::cos(id * 4.56f),
+        //         std::sin(id * 7.89f)
+        //     });
+        //     rb.torque += axis * 3.0f;
+        // }
     }
 
     for (auto& [_, rb] : m_physMap) rb.integrate(dt);
 
     // bouncing
     if (m_collisionsEnabled) {
-        for (auto& [_, rb] : m_physMap) rb.bounceSphere(m_groundY);
+        // for (auto& [_, rb] : m_physMap) rb.bounceSphere(m_groundY);
     }
 }

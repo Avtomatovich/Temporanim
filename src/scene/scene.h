@@ -7,6 +7,7 @@
 #include "geometry/model.h"
 #include "geometry/geometry.h"
 #include "physics/rigidbody.h"
+#include "physics/projectile.h"
 #include "texture/texture.h"
 #include "utils/sceneparser.h"
 
@@ -70,6 +71,8 @@ private:
     bool m_gravityEnabled = false;
     bool m_torqueEnabled = false;
     bool m_collisionsEnabled = false;
+
+    Projectile m_projectile;
 };
 
 #endif // SCENE_H

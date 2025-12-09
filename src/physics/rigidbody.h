@@ -26,7 +26,7 @@ private:
     glm::quat q_t{1.f, 0.f, 0.f, 0.f};    // orientation q(t) as quaternion
     glm::vec3 P_t{0.f};                   // linear momentum P(t)
     glm::vec3 L_t{0.f};                   // angular momentum L(t)
-    float mass = 1.f;                   // m
+    float mass = 1.f;                     // m
 
     // derived state
     glm::vec3 v{0.f};                   // linear velocity v(t) = P(t) / M
@@ -39,6 +39,8 @@ private:
     glm::mat4 R{1.f};                   // rotation matrix (from quaternion)
     glm::mat4 ctm{1.f};
     glm::vec3 scale{1.f};
+
+    float restitution = 0.7f;           // bounciness factor
 
     PrimitiveType type;
 

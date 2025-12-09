@@ -6,6 +6,8 @@
 RigidBody::RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initialTransform)
     : type(shapeType), mass(m), ctm(initialTransform)
 {
+    // TODO: compute mass using constant density factor and computed volume
+
     reset();
 
     // inertia tensor based on shape type
@@ -23,8 +25,8 @@ RigidBody::RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initialT
             Ibody = Transform::computeConeInertia(mass, 0.5f * scale.x, scale.y);
             break;
         default:
-            //sphere
-            Ibody = glm::mat3(1.0f);
+            // sphere
+            Ibody = glm::mat3(1.f);
             break;
     }
 
@@ -94,7 +96,7 @@ void RigidBody::integrate(float dt) {
     P_t += force * dt;
     L_t += torque * dt;
 
-    //damping
+    // damping
     P_t *= 0.99f;
     L_t *= 0.99f;
 }
@@ -130,9 +132,6 @@ void RigidBody::bounceSphere(float groundY) {
 
     if (bottomY <= groundY) {
         x_t.y = groundY + radius;
-
-        // bounciness
-        float restitution = 0.7f;
 
         if (v.y < 0) {
             v.y = -v.y * restitution;
