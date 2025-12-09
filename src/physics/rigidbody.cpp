@@ -96,6 +96,8 @@ void RigidBody::integrate(float dt) {
     P_t += force * dt;
     L_t += torque * dt;
 
+    q_t = glm::normalize(q_t);
+
     // damping
     P_t *= 0.99f;
     L_t *= 0.99f;
