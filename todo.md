@@ -9,7 +9,7 @@
     - [] tomato
     - [] cabbage
     - [] carrot
-    - [] orange
+    - [] apple
     - [] onion/garlic
 - [] create quick market scene (in Blender?)
 - [] add logic for throwables

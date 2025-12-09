@@ -150,7 +150,7 @@ void Realtime::settingsChanged() {
     m_scene->updateProj(settings.nearPlane, settings.farPlane);
     // Retessellate based on update variables
     m_scene->retessellate(settings.shapeParameter1, settings.shapeParameter2);
-    // Toggle physics bools based on settings params
+    // Toggle physics bools based on settings
     m_scene->enableGravity(settings.enableGravity);
     m_scene->enableRotation(settings.enableRotation);
     m_scene->enableCollisions(settings.enableCollisions);

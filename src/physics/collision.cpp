@@ -1,3 +1,5 @@
 #include "collision.h"
 
-Collision::Collision() {}
+namespace Collision {
+
+}

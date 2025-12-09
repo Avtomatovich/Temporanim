@@ -1,10 +1,8 @@
 #ifndef COLLISION_H
 #define COLLISION_H
 
-class Collision
-{
-public:
-    Collision();
-};
+namespace Collision {
+
+}
 
 #endif // COLLISION_H
