@@ -1,0 +1,24 @@
+# TO-DO
+
+- [] fix build issue on mac machine
+- [] test/verify physics integration
+- [] gather assets and animations
+  - [] peasant model
+  - [] hit animation
+  - [] fruit/veg models (mesh or primitive?)
+    - [] tomato
+    - [] cabbage
+    - [] carrot
+    - [] orange
+    - [] onion/garlic
+- [] create market scene (in Blender?)
+- [] add logic for throwables
+- [] hardcode fruit/veggies into scene
+  - [] add spawn logic (randomized)
+  - [] add despawn logic
+- [] add collision logic (use raytracer logic)
+  - [] sphere-sphere
+  - [] sphere-cylinder
+- [] enclose meshes in cylinder volumes for collisions
+- [] add logic for character hit animation
+- [] create + edit demo vid
