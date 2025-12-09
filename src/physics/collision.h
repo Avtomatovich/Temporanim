@@ -9,6 +9,10 @@ class Collision
 public:
     Collision(const RenderShapeData& shape);
 
+    const Box& getBox() const;
+
+    void updateBox(const glm::mat4& ctm);
+
     bool detect(const Collision& collider);
 
 private:
@@ -17,7 +21,7 @@ private:
     float radius;
     Box box;
 
-    bool sphereBox(const Collision& sphere, const Collision& box);
+    bool boxBox(const Box& b0, const Box& b1);
 };
 
 #endif // COLLISION_H

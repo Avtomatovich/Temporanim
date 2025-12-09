@@ -2,7 +2,6 @@
 
 - [x] fix build issue on mac machine
 - [x] verify physics integration
-- [ ] compute mass using constant density factor and computed volume
 - [ ] gather assets + animations
   - [ ] another knight model
   - [ ] maybe shield mesh? (add to character in Blender)
@@ -12,10 +11,11 @@
 
 ## Samson
 
-- [ ] add collision logic (use raytracer logic)
+- [ ] add collision logic
+  - [x] enclose meshes in AABBs for collisions
   - [x] sphere-sphere
   - [ ] box-box
-- [x] enclose meshes in AABBs for collisions
+  - [ ] collision loop
 - [ ] add logic for character hit animation
   - [ ] find and rig hit animation
   - [ ] react to hit? (move away from projectile impact)
@@ -24,6 +24,7 @@
 
 ## Carlos
 
+- [ ] compute mass using constant density factor and computed volume
 - [ ] add projectile logic
   - [ ] hardcode fruit/veggies into scene
     - [ ] add spawn logic (randomized)

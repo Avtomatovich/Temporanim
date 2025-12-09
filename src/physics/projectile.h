@@ -2,23 +2,22 @@
 #define PROJECTILE_H
 
 #include <vector>
-// #include "physics/rigidbody.h"
-#include "utils/scenedata.h"
+#include "physics/rigidbody.h"
 #include "utils/sceneparser.h"
 
 class Projectile
 {
 public:
-    Projectile();
+    Projectile(const RigidBody& rigidBody);
 
     RenderShapeData getProjectile();
 
     void draw();
 
 private:
-    std::vector<ScenePrimitive> projectiles;
+    std::vector<RenderShapeData> projectiles;
 
-    // RigidBody m_rigidBody;
+    const RigidBody& m_rigidBody;
 };
 
 #endif // PROJECTILE_H

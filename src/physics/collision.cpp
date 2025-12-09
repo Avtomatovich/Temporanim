@@ -1,7 +1,7 @@
 #include "collision.h"
 #include <algorithm>
 
-Collision::Collision(const RenderShapeData &shape)
+Collision::Collision(const RenderShapeData& shape)
     : type(shape.primitive.type)
 {
     center = shape.ctm[3];
@@ -39,30 +39,51 @@ Collision::Collision(const RenderShapeData &shape)
     }
 }
 
+void Collision::updateBox(const glm::mat4& ctm) {
+    center = ctm[3];
+    height = {
+        glm::length(glm::vec3{ctm[0]}),
+        glm::length(glm::vec3{ctm[1]}),
+        glm::length(glm::vec3{ctm[2]})
+    };
+    radius = height[0] * 0.5f;
+
+    if (type == PrimitiveType::PRIMITIVE_MESH) {
+        box = Box{
+            ctm * glm::vec4{box.min, 1.f},
+            ctm * glm::vec4{box.max, 1.f}
+        };
+    }
+}
+
 bool Collision::detect(const Collision& collider) {
     // sphere-sphere
-    if (type == PrimitiveType::PRIMITIVE_SPHERE && collider.type == PrimitiveType::PRIMITIVE_SPHERE) {
+    if (type == PrimitiveType::PRIMITIVE_SPHERE && collider.type == PrimitiveType::PRIMITIVE_SPHERE ||
+        collider.type == PrimitiveType::PRIMITIVE_SPHERE && type == PrimitiveType::PRIMITIVE_SPHERE) {
         if (glm::distance(center, collider.center) < (radius + collider.radius)) {
             return true;
         }
     }
 
-    // sphere-box
+    // box-box
     if (type == PrimitiveType::PRIMITIVE_SPHERE && collider.type == PrimitiveType::PRIMITIVE_MESH) {
-        return sphereBox(*this, collider);
+        return boxBox(this->getBox(), collider.getBox());
     }
-
-    // box-sphere
-    if (type == PrimitiveType::PRIMITIVE_MESH && collider.type == PrimitiveType::PRIMITIVE_SPHERE) {
-        return sphereBox(collider, *this);
+    if (collider.type == PrimitiveType::PRIMITIVE_SPHERE && type == PrimitiveType::PRIMITIVE_MESH) {
+        return boxBox(collider.getBox(), this->getBox());
     }
 
     return false;
 }
 
-bool Collision::sphereBox(const Collision& sphere, const Collision& box) {
-    // TODO: sphere-box
+bool boxBox(const Box& b0, const Box& b1) {
+    // TODO: box-box
+    for (int i = 0; i < 2; ++i) {
+        if (b1.min[i] < b0.max[i] ||
+            b1.max[i] > b0.min[i]) {
+            return false;
+        }
+    }
 
-
-    return false;
+    return true;
 }
