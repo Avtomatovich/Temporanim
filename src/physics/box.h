@@ -4,8 +4,8 @@
 #include <glm/glm.hpp>
 
 struct Box {
-    glm::vec3 min;
-    glm::vec3 max;
+    glm::vec3 min{0.f};
+    glm::vec3 max{0.f};
 };
 
 #endif // BOX_H

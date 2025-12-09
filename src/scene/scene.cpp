@@ -79,8 +79,8 @@ Scene::Scene(const RenderData& metaData,
             }
         }
 
-        // TODO: Add collision instance to collision map
-        m_collMap.emplace(i, Collision{});
+        // Add collision instance to collision map
+        m_collMap.emplace(i, shape);
     }
 }
 
