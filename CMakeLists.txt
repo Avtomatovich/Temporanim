@@ -76,6 +76,7 @@ add_executable(${PROJECT_NAME}
     src/animation/animator.h src/animation/animator.cpp
 
     src/physics/rigidbody.h src/physics/rigidbody.cpp
+    src/physics/collision.h src/physics/collision.cpp
 )
 
 # GLM: this creates its library and allows you to `#include "glm/..."`
