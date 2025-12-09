@@ -22,7 +22,7 @@ find_package(Qt6 REQUIRED COMPONENTS Xml)
 
 # Sets path for finding ASSIMP binaries
 if (APPLE)
-    set(CMAKE_PREFIX_PATH /Users/${ENV:USER}/assimp)
+    set(CMAKE_PREFIX_PATH /Users/$ENV{USER}/assimp/build)
 elseif(WIN32)
     set(CMAKE_PREFIX_PATH C:/assimp)
 endif()
