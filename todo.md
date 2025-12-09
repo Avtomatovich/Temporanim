@@ -1,6 +1,6 @@
-# TO-DO
+# To-Do
 
-- [] fix build issue on mac machine
+- [x] fix build issue on mac machine
 - [] test/verify physics integration
 - [] gather assets and animations
   - [] peasant model
@@ -11,7 +11,7 @@
     - [] carrot
     - [] orange
     - [] onion/garlic
-- [] create market scene (in Blender?)
+- [] create quick market scene (in Blender?)
 - [] add logic for throwables
 - [] hardcode fruit/veggies into scene
   - [] add spawn logic (randomized)
