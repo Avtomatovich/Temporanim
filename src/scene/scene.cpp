@@ -78,6 +78,9 @@ Scene::Scene(const RenderData& metaData,
                 m_texMap.emplace(filename, Texture{filename, 1});
             }
         }
+
+        // TODO: Add collision instance to collision map
+        m_collMap.emplace(i, Collision{});
     }
 }
 
@@ -204,6 +207,18 @@ void Scene::toggleNormalMap() {
 }
 
 void Scene::updatePhys(float dt) {
+    // float lowestY = 0.f;
+
+    // for (int i = 0; i < m_renderData.shapes.size(); i++) {
+    //     const auto& shape = m_renderData.shapes[i];
+
+    //     lowestY = std::min(lowestY, shape.ctm[3].y);
+
+    //     m_rigidBodies.emplace(i, RigidBody{shape.primitive.type, 1.f, shape.ctm});
+    // }
+
+    // m_groundY = lowestY - 3.0f;
+
     if (!m_gravityEnabled && !m_torqueEnabled && !m_collisionsEnabled) {
         for (auto& [_, rb] : m_physMap) rb.reset();
         return;

@@ -1,8 +1,8 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "utils/sceneparser.h"
 #include <glm/glm.hpp>
+#include "utils/sceneparser.h"
 
 class Mesh
 {
@@ -15,7 +15,7 @@ public:
     const std::vector<unsigned int>& getIndexes() const;
 
 private:
-    std::vector<Vertex>& m_vertexData;
+    const std::vector<Vertex>& m_vertexData;
     const std::vector<unsigned int>& m_indexes;
 };
 

@@ -64,9 +64,9 @@ namespace Transform
     glm::mat3 computeSphereInertia(float M, float r) {
         float I = (2.f / 5.f) * M * r*r;
 
-        return glm::mat3{
-            I, 0.f, 0.f,
-            0.f, I, 0.f,
+        return {
+            I,   0.f, 0.f,
+            0.f, I,   0.f,
             0.f, 0.f, I
         };
     }
@@ -76,7 +76,7 @@ namespace Transform
         float Ixx = M * (3 * r*r + h*h) / 12.f;
         float Iyy = M * r*r / 2.f;
 
-        return glm::mat3{
+        return {
             Ixx, 0.f, 0.f,
             0.f, Iyy, 0.f,
             0.f, 0.f, Ixx
@@ -88,7 +88,7 @@ namespace Transform
         float Ixx = M * (3 * r*r / 20.f + h*h / 10.f);
         float Iyy = 3 * M * r*r / 10.f;
 
-        return glm::mat3{
+        return {
             Ixx, 0.f, 0.f,
             0.f, Iyy, 0.f,
             0.f, 0.f, Ixx

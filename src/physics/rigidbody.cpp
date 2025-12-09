@@ -42,7 +42,7 @@ void RigidBody::reset() {
     x_t = ctm[3];
 
     // store scale
-    scale = glm::vec3{
+    scale = {
         glm::length(glm::vec3{ctm[0]}),
         glm::length(glm::vec3{ctm[1]}),
         glm::length(glm::vec3{ctm[2]})

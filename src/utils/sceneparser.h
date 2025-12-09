@@ -17,13 +17,6 @@ struct Vertex {
         weights.fill(0.f);
     }
 
-    Vertex(glm::vec3 p, glm::vec3 n, glm::vec2 u) :
-        pos(p), norm(n), uv(u)
-    {
-        boneIDs.fill(-1);
-        weights.fill(0.f);
-    }
-
     Vertex(glm::vec3 p, glm::vec3 n, glm::vec2 u,
            glm::vec3 t, glm::vec3 b) :
         pos(p), norm(n), uv(u), tang(t), bitang(b)

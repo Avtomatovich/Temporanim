@@ -6,6 +6,7 @@
 #include "camera/camera.h"
 #include "geometry/model.h"
 #include "geometry/geometry.h"
+#include "physics/collision.h"
 #include "physics/rigidbody.h"
 #include "physics/projectile.h"
 #include "texture/texture.h"
@@ -61,6 +62,7 @@ private:
     std::unordered_map<std::string, Model> m_modelMap;
     std::unordered_map<std::string, Animator> m_animMap;
     std::unordered_map<int, RigidBody> m_physMap;
+    std::unordered_map<int, Collision> m_collMap;
 
     void addPrim(const RenderShapeData& shape, int param1, int param2);
     const Geometry& getGeom(const RenderShapeData& shape);

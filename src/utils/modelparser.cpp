@@ -119,7 +119,7 @@ namespace ModelParser {
         // Fetch meshfile path (assume meshfile has its own dir)
         fs::path meshpath = fs::path(meshfile);
 
-        // If file type is obj or dae, and texture type is normal, set to height map
+        // If file type is obj, and texture type is normal, set to height map
         if (meshpath.extension().string() == ".obj") {
             if (type == aiTextureType_NORMALS) type = aiTextureType_HEIGHT;
         }
