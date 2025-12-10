@@ -131,7 +131,7 @@
           "textureV": 5.0
         }
       ],
-      "translate": [0, 0, 0],
+      "translate": [0, -0.1, 0],
       "scale": [10, 0.1, 10]
     },
     {

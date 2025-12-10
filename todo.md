@@ -2,7 +2,6 @@
 
 - [x] fix build issue on mac machine
 - [x] verify physics integration
-- [ ] improve what we have
 - [ ] create + edit demo vid
 
 ## Samson
@@ -13,23 +12,15 @@
   - [x] box-box
   - [x] cube-box (for floors and walls)
   - [x] add rigid body logic to meshes
-  - [ ] collision loop
+  - [x] collision loop
+  - [ ] update character AABBs for animated models
 - [ ] add logic for character hit animation
   - [ ] gather assets + animations
-    - [ ] find better brick texture with normal mapping
-    - [ ] find another knight model with pre-baked shield
+    - [ ] find, add better brick texture with normal mapping
+    - [ ] find another knight model (with pre-baked shield?)
     - [ ] find hit animation
-    - [ ] react to hit? (move away from projectile impact)
-      - [ ] fetch ctm ref to mod it for all meshes in a model
-      - [ ] add rigid body instance?
-- [x] find and add fruit/veg models (_mesh_)
-  - [x] tomato
-  - [x] cabbage
-  - [x] carrot
-  - [x] apple
-  - [x] onion
-- [x] test fruit/veg models (_mesh_)
-  - [x] tomato
+- [x] find, add, test fruit/veg models (_mesh_)
+  - [x] sweet potato
   - [x] cabbage
   - [x] carrot
   - [x] apple
