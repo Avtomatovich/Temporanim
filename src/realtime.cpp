@@ -138,6 +138,9 @@ void Realtime::sceneChanged() {
 
     glErrorCheck();
 
+    // Send signal to UI to reset checkboxes
+    emit sceneLoaded();
+
     update(); // asks for a PaintGL() call to occur
 }
 

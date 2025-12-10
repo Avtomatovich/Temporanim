@@ -16,6 +16,8 @@
 
 class Realtime : public QOpenGLWidget
 {
+    Q_OBJECT
+
 public:
     Realtime(QWidget *parent = nullptr);
     void finish();                                      // Called on program exit
@@ -23,8 +25,8 @@ public:
     void settingsChanged();
     void saveViewportImage(std::string filePath);
 
-public slots:
-    void tick(QTimerEvent* event);                      // Called once per tick of m_timer
+signals:
+    void sceneLoaded();                                 // Called when scene is loaded
 
 protected:
     void initializeGL() override;                       // Called once at the start of the program
@@ -59,6 +61,6 @@ private:
     std::optional<RenderData> m_metaData;
     std::optional<Scene> m_scene;
 
-    // Shader Program IDs
+    // Shader Program ID
     GLuint m_shader;
 };
