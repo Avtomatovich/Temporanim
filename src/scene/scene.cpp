@@ -32,6 +32,9 @@ Scene::Scene(const RenderData& metaData,
 
         const std::string& meshfile = shape.primitive.meshfile;
 
+        // Add collision instance to collision map
+        m_collMap.emplace(i, shape);
+
         // Add model to model map if not present
         if (!m_modelMap.contains(meshfile) && !meshfile.empty()) {
             m_modelMap.emplace(meshfile, meshfile);
@@ -55,18 +58,13 @@ Scene::Scene(const RenderData& metaData,
             }
         }
 
-        // Add collision instance to collision map
-        m_collMap.emplace(i, shape);
-
         // Add rigid body to phys map if dynamic
         if (shape.primitive.isDynamic) {
-            std::cout << "dynamic shape added" << std::endl;
             // Use default mass of 1.f
             m_physMap.emplace(i, RigidBody{shape.primitive.type,
                                            1.f,
                                            shape.ctm,
                                            m_collMap.at(i).getBox()});
-
         }
 
         // Add texture map to slot 0 if used
@@ -184,27 +182,27 @@ int Scene::getGeomKey(const RenderShapeData& shape) {
 }
 
 void Scene::clean() {
-    for (auto& prim : m_primMap) prim.second.clean();
+    for (auto& [_, prim] : m_primMap) prim.clean();
 
-    for (auto& model : m_modelMap) model.second.clean();
+    for (auto& [_, model] : m_modelMap) model.clean();
 
-    for (auto& tex : m_texMap) tex.second.clean();
+    for (auto& [_, tex] : m_texMap) tex.clean();
 }
 
 void Scene::retessellate(int param1, int param2) {
-    for (auto& prim : m_primMap) prim.second.updateParams(param1, param2);
+    for (auto& [_, prim] : m_primMap) prim.updateParams(param1, param2);
 }
 
 void Scene::updateAnim(float dt) {
-    for (auto& anim : m_animMap) anim.second.update(dt);
+    for (auto& [_, anim] : m_animMap) anim.update(dt);
 }
 
 void Scene::playAnim() {
-    for (auto& anim : m_animMap) anim.second.play();
+    for (auto& [_, anim] : m_animMap) anim.play();
 }
 
 void Scene::swapAnim(bool toNext) {
-    for (auto& anim : m_animMap) anim.second.swap(toNext);
+    for (auto& [_, anim] : m_animMap) anim.swap(toNext);
 }
 
 void Scene::toggleNormalMap() {
@@ -212,18 +210,6 @@ void Scene::toggleNormalMap() {
 }
 
 void Scene::updatePhys(float dt) {
-    // float lowestY = 0.f;
-
-    // for (int i = 0; i < m_renderData.shapes.size(); i++) {
-    //     const auto& shape = m_renderData.shapes[i];
-
-    //     lowestY = std::min(lowestY, shape.ctm[3].y);
-
-    //     m_rigidBodies.emplace(i, RigidBody{shape.primitive.type, 1.f, shape.ctm});
-    // }
-
-    // m_groundY = lowestY - 3.0f;
-
     if (!m_gravityEnabled && !m_torqueEnabled && !m_collisionsEnabled) {
         for (auto& [_, rb] : m_physMap) rb.reset();
         return;
@@ -234,6 +220,8 @@ void Scene::updatePhys(float dt) {
     //  gravity
     if (m_gravityEnabled) {
         for (auto& [_, rb] : m_physMap) rb.applyForce();
+    } else {
+        for (auto& [_, rb] : m_physMap) rb.reset();
     }
 
     // torque
@@ -250,8 +238,30 @@ void Scene::updatePhys(float dt) {
 
     for (auto& [_, rb] : m_physMap) rb.integrate(dt);
 
-    // bouncing
+    // collision
     if (m_collisionsEnabled) {
-        // for (auto& [_, rb] : m_physMap) rb.bounceSphere(m_groundY);
+        // update dynamic AABBs
+        for (auto& [rid, rb] : m_physMap) m_collMap.at(rid).updateBox(rb.getCtm());
+
+        // for each dynamic object
+        for (auto& [rid, rb] : m_physMap) {
+            Collision& affector = m_collMap.at(rid);
+            // check each collision object (static + dynamic)
+            for (const auto& [cid, affectee] : m_collMap) {
+                // skip self and previously collided dynamics
+                if (cid == rid || (m_physMap.contains(cid) && cid <= rid)) continue;              
+
+                // if collision detected
+                if (affector.detect(affectee)) {
+                    std::cout << "collision detected" << std::endl;
+
+                    // TODO: determine reaction forces
+                    // rb.handleForces();
+
+                    // determine affectee's reaction forces if affectee is dynamic
+                    // if (m_physMap.contains(cid)) m_physMap.at(cid).handleForces();
+                }
+            }
+        }
     }
 }
