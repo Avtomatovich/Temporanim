@@ -72,10 +72,13 @@
           "specular": [0, 0, 0],
           "shininess": 1,
           "type": "cube",
-          "textureFile": "textures/bricks.jpg",
+          "textureFile": "textures/Bricks076A_Color.jpg",
           "blend": 1.0,
-          "textureU": 5.0,
-          "textureV": 5.0
+          "textureU": 3.0,
+          "textureV": 3.0,
+          "bumpMapFile": "textures/Bricks076A_NormalGL.jpg",
+          "bumpMapU": 3.0,
+          "bumpMapV": 3.0
         }
       ],
       "translate": [5, 2.5, 0],
@@ -90,10 +93,13 @@
           "specular": [0, 0, 0],
           "shininess": 1,
           "type": "cube",
-          "textureFile": "textures/bricks.jpg",
+          "textureFile": "textures/Bricks076A_Color.jpg",
           "blend": 1.0,
-          "textureU": 5.0,
-          "textureV": 5.0
+          "textureU": 3.0,
+          "textureV": 3.0,
+          "bumpMapFile": "textures/Bricks076A_NormalGL.jpg",
+          "bumpMapU": 3.0,
+          "bumpMapV": 3.0
         }
       ],
       "translate": [-5, 2.5, 0],
@@ -108,10 +114,13 @@
           "specular": [0, 0, 0],
           "shininess": 1,
           "type": "cube",
-          "textureFile": "textures/bricks.jpg",
+          "textureFile": "textures/Bricks076A_Color.jpg",
           "blend": 1.0,
-          "textureU": 5.0,
-          "textureV": 5.0
+          "textureU": 3.0,
+          "textureV": 3.0,
+          "bumpMapFile": "textures/Bricks076A_NormalGL.jpg",
+          "bumpMapU": 3.0,
+          "bumpMapV": 3.0
         }
       ],
       "translate": [0, 2.5, -5],

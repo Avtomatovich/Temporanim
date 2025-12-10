@@ -16,9 +16,10 @@
   - [ ] update character AABBs for animated models
 - [ ] add logic for character hit animation
   - [ ] gather assets + animations
-    - [ ] find, add better brick texture with normal mapping
-    - [ ] find another knight model (with pre-baked shield?)
-    - [ ] find hit animation
+    - [x] find and add better brick texture with normal mapping
+    - [ ] fetch knight model from mixamo with pre-baked shield
+    - [ ] combine idle + hit animation with model
+    - [ ] export from Blender
 - [x] find, add, test fruit/veg models (_mesh_)
   - [x] sweet potato
   - [x] cabbage
