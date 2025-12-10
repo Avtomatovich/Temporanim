@@ -3,12 +3,20 @@
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
-#include "utils/transform.h"
 #include "modelparser.h"
 
 namespace fs = std::filesystem;
 
 namespace ModelParser {
+
+    static glm::mat4 toGlmMat(const aiMatrix4x4& mat) {
+        return glm::mat4{
+            mat.a1, mat.b1, mat.c1, mat.d1,
+            mat.a2, mat.b2, mat.c2, mat.d2,
+            mat.a3, mat.b3, mat.c3, mat.d3,
+            mat.a4, mat.b4, mat.c4, mat.d4
+        };
+    }
 
     void updateAnim(const aiScene* scene, AnimData& animData) {
         if (!scene->HasAnimations()) return;
@@ -162,6 +170,7 @@ namespace ModelParser {
 
         } else std::cerr << "Failed to load texture file path from mesh file: " << meshfile << std::endl;
 
+        std::cout << std::endl;
     }
 
     void updateMaterial(aiMaterial* mtl, RenderShapeData& shape) {
@@ -215,7 +224,7 @@ namespace ModelParser {
         }
 
         // Compose transformation
-        ctm *= Transform::toGlmMat(node->mTransformation);
+        ctm *= toGlmMat(node->mTransformation);
 
         // Fetch const ref to shape's meshfile
         const std::string& meshfile = primitive->meshfile;
@@ -307,7 +316,7 @@ namespace ModelParser {
                         // Add bone to skeleton
                         skeleton.push_back({
                             name,
-                            Transform::toGlmMat(bone->mOffsetMatrix)
+                            toGlmMat(bone->mOffsetMatrix)
                         });
                     }
 

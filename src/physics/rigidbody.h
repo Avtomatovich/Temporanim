@@ -4,10 +4,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include "utils/scenedata.h"
+#include "physics/box.h"
 
 class RigidBody {
 public:
-    RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initialTransform);
+    RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initCtm);
+
+    RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initCtm, const Box& box);
 
     void reset();
 
@@ -44,12 +47,17 @@ private:
 
     PrimitiveType type;
 
+    constexpr static glm::vec3 gravity{0.f, -9.8f, 0.f};
+
     void computeAuxiliaryVariables();
 
     void applyForceAtPoint(const glm::vec3& point);
     void applyImpulse(const glm::vec3& impulse);
 
-    constexpr static glm::vec3 gravity{0.f, -9.8f, 0.f};
+    glm::mat3 computeCubeInertia(float M, const glm::vec3& dim);
+    glm::mat3 computeSphereInertia(float M, float r);
+    glm::mat3 computeCylinderInertia(float M, float r, float h);
+    glm::mat3 computeConeInertia(float M, float r, float h);
 };
 
 #endif // RIGIDBODY_H
