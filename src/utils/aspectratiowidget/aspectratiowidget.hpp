@@ -48,8 +48,8 @@ public slots:
         }
         else // parent is too high
         {
-            int target_heigth = static_cast<int>(static_cast<double>(w)*m_ratio);
-            m_aspect_widget->setMaximumHeight(target_heigth);
+            int target_height = static_cast<int>(static_cast<double>(w)*m_ratio);
+            m_aspect_widget->setMaximumHeight(target_height);
             m_aspect_widget->setMaximumWidth(w);
         }
     }

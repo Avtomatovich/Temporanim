@@ -9,25 +9,29 @@ class Collision
 public:
     Collision(const RenderShapeData& shape);
 
+    const PrimitiveType getType() const;
+
     const Box& getBox() const;
 
     void updateBox(const glm::mat4& ctm);
 
-    bool detect(const Collision& collider);
+    bool detect(const Collision& that) const;
+
+    bool detect(const Box& that) const;
 
 private:
     PrimitiveType type;
     glm::vec3 center, height;
     float radius;
 
-    // world space AABB
-    Box box;
-
     // object space min, max
     glm::vec3 min, max;
 
-    bool boxBox(const Box& b0, const Box& b1);
-    bool cubeBox(const Collision& cube, const Box& box);
+    // world space AABB
+    Box box;
+
+    bool boxBox(const Box& b0, const Box& b1) const;
+    bool cubeBox(const Collision& cube, const Box& box) const;
 };
 
 #endif // COLLISION_H

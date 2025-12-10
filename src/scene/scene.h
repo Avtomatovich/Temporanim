@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include "animation/animator.h"
+#include "animation/animautomaton.h"
 #include "camera/camera.h"
 #include "geometry/model.h"
 #include "geometry/geometry.h"
@@ -48,7 +49,7 @@ public:
 
     inline void enableGravity(bool toggle) { m_gravityEnabled = toggle; }
     inline void enableRotation(bool toggle) { m_torqueEnabled = toggle; }
-    inline void enableCollisions(bool toggle) { m_collisionsEnabled = toggle; }
+    inline void enableCollisions(bool toggle) { m_collisionEnabled = toggle; }
 
 private:
     SceneGlobalData m_global;
@@ -63,15 +64,19 @@ private:
     std::unordered_map<int, RigidBody> m_physMap;
     std::unordered_map<int, Collision> m_collMap;
 
-    void addPrim(const RenderShapeData& shape, int param1, int param2);
-    const Geometry& getGeom(const RenderShapeData& shape);
-    int getGeomKey(const RenderShapeData& shape);
-
     bool m_normalMapToggled = true;
 
     bool m_gravityEnabled = false;
     bool m_torqueEnabled = false;
-    bool m_collisionsEnabled = false;
+    bool m_collisionEnabled = false;
+
+    std::unique_ptr<AnimAutomaton> m_automaton;
+
+    void addPrim(const RenderShapeData& shape, int param1, int param2);
+    const Geometry& getGeom(const RenderShapeData& shape);
+    int getGeomKey(const RenderShapeData& shape);
+
+    std::string findMeshfile(const std::string& query);
 };
 
 #endif // SCENE_H

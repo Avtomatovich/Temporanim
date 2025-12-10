@@ -200,7 +200,7 @@ namespace UniLoader
             throw std::invalid_argument("Missing model matrix uniform variables");
         }
 
-        glm::mat4 transform = rigidBody.getTransformMatrix();
+        glm::mat4 transform = rigidBody.getCtm();
 
         glUniformMatrix4fv(model, 1, GL_FALSE, &transform[0][0]);
         glUniformMatrix3fv(modelInvT, 1, GL_TRUE, &glm::mat3{glm::inverse(transform)}[0][0]);

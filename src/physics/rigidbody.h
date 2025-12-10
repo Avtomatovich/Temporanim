@@ -12,7 +12,7 @@ public:
 
     void reset();
 
-    glm::mat4 getTransformMatrix() const;
+    glm::mat4 getCtm() const;
 
     void clearForces();
 

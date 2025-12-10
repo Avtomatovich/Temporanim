@@ -32,6 +32,9 @@ Scene::Scene(const RenderData& metaData,
 
         const std::string& meshfile = shape.primitive.meshfile;
 
+        // Add collision instance to collision map
+        m_collMap.emplace(i, shape);
+
         // Add model to model map if not present
         if (!m_modelMap.contains(meshfile) && !meshfile.empty()) {
             m_modelMap.emplace(meshfile, meshfile);
@@ -55,18 +58,13 @@ Scene::Scene(const RenderData& metaData,
             }
         }
 
-        // Add collision instance to collision map
-        m_collMap.emplace(i, shape);
-
         // Add rigid body to phys map if dynamic
         if (shape.primitive.isDynamic) {
-            std::cout << "dynamic shape added" << std::endl;
             // Use default mass of 1.f
             m_physMap.emplace(i, RigidBody{shape.primitive.type,
                                            1.f,
                                            shape.ctm,
                                            m_collMap.at(i).getBox()});
-
         }
 
         // Add texture map to slot 0 if used
@@ -86,6 +84,17 @@ Scene::Scene(const RenderData& metaData,
                 m_texMap.emplace(filename, Texture{filename, 1});
             }
         }
+    }
+
+    // find meshfile of animated model and init animation state machine
+    std::string meshfile = findMeshfile("paladin");
+    if (meshfile.empty()) {
+        std::cerr << "Missing paladin model for state machine" << std::endl;
+    } else {
+        m_automaton = std::make_unique<AnimAutomaton>(
+            m_modelMap.at(meshfile),
+            m_animMap.at(meshfile)
+        );
     }
 }
 
@@ -184,27 +193,28 @@ int Scene::getGeomKey(const RenderShapeData& shape) {
 }
 
 void Scene::clean() {
-    for (auto& prim : m_primMap) prim.second.clean();
+    for (auto& [_, prim] : m_primMap) prim.clean();
 
-    for (auto& model : m_modelMap) model.second.clean();
+    for (auto& [_, model] : m_modelMap) model.clean();
 
-    for (auto& tex : m_texMap) tex.second.clean();
+    for (auto& [_, tex] : m_texMap) tex.clean();
 }
 
 void Scene::retessellate(int param1, int param2) {
-    for (auto& prim : m_primMap) prim.second.updateParams(param1, param2);
+    for (auto& [_, prim] : m_primMap) prim.updateParams(param1, param2);
 }
 
 void Scene::updateAnim(float dt) {
-    for (auto& anim : m_animMap) anim.second.update(dt);
+    for (auto& [_, anim] : m_animMap) anim.update(dt);
+    if (m_automaton) m_automaton->update(dt);
 }
 
 void Scene::playAnim() {
-    for (auto& anim : m_animMap) anim.second.play();
+    for (auto& [_, anim] : m_animMap) anim.play();
 }
 
 void Scene::swapAnim(bool toNext) {
-    for (auto& anim : m_animMap) anim.second.swap(toNext);
+    for (auto& [_, anim] : m_animMap) anim.swap(toNext, true);
 }
 
 void Scene::toggleNormalMap() {
@@ -212,19 +222,7 @@ void Scene::toggleNormalMap() {
 }
 
 void Scene::updatePhys(float dt) {
-    // float lowestY = 0.f;
-
-    // for (int i = 0; i < m_renderData.shapes.size(); i++) {
-    //     const auto& shape = m_renderData.shapes[i];
-
-    //     lowestY = std::min(lowestY, shape.ctm[3].y);
-
-    //     m_rigidBodies.emplace(i, RigidBody{shape.primitive.type, 1.f, shape.ctm});
-    // }
-
-    // m_groundY = lowestY - 3.0f;
-
-    if (!m_gravityEnabled && !m_torqueEnabled && !m_collisionsEnabled) {
+    if (!m_gravityEnabled && !m_torqueEnabled && !m_collisionEnabled) {
         for (auto& [_, rb] : m_physMap) rb.reset();
         return;
     }
@@ -234,6 +232,8 @@ void Scene::updatePhys(float dt) {
     //  gravity
     if (m_gravityEnabled) {
         for (auto& [_, rb] : m_physMap) rb.applyForce();
+    } else {
+        for (auto& [_, rb] : m_physMap) rb.reset();
     }
 
     // torque
@@ -250,8 +250,89 @@ void Scene::updatePhys(float dt) {
 
     for (auto& [_, rb] : m_physMap) rb.integrate(dt);
 
-    // bouncing
-    if (m_collisionsEnabled) {
-        // for (auto& [_, rb] : m_physMap) rb.bounceSphere(m_groundY);
+    // collision
+    if (m_collisionEnabled) {
+        // update dynamic AABBs
+        for (auto& [rid, rb] : m_physMap) m_collMap.at(rid).updateBox(rb.getCtm());
+
+        // store meshfile that matches paladin
+        const std::string& paladin = findMeshfile("paladin");
+
+        // bool to avoid repeat collisions of meshes in same model
+        bool isHit = false;
+
+        // for each dynamic object
+        for (auto& [rid, rb] : m_physMap) {
+            // store const ref of affector collision
+            Collision& affector = m_collMap.at(rid);
+
+            // check each collision object (static + dynamic)
+            for (const auto& [cid, affectee] : m_collMap) {
+
+                // skip self and previously collided dynamics
+                if (cid == rid || (m_physMap.contains(cid) && cid <= rid)) continue;
+
+                // get meshfile of collision obj
+                const std::string& meshfile = m_shapes.at(cid).primitive.meshfile;
+
+                // if collision obj is animated
+                if (!meshfile.empty() && m_animMap.contains(meshfile)) {
+
+                    // check collision against model AABB
+                    if (affector.detect(m_modelMap.at(meshfile).getBox())) {
+                        std::cout << "collision detected" << std::endl;
+
+                        // change animation state from idle to hit
+                        if (!isHit && m_automaton && paladin == meshfile) {
+                            m_automaton->onHit();
+                            isHit = true;
+                        }
+
+                        // TODO: determine reaction forces
+                        // rb.handleForces();
+
+                        // determine affectee's reaction forces if affectee is dynamic
+                        // if (m_physMap.contains(cid)) m_physMap.at(cid).handleForces();
+
+                        // skip default conditional
+                        continue;
+                    }
+                }
+
+                // if collision detected
+                if (affector.detect(affectee)) {
+                    std::cout << "collision detected" << std::endl;
+
+                    // TODO: determine reaction forces
+                    // rb.handleForces();
+
+                    // determine affectee's reaction forces if affectee is dynamic
+                    // if (m_physMap.contains(cid)) m_physMap.at(cid).handleForces();
+                }
+            }
+        }
     }
+}
+
+std::string Scene::findMeshfile(const std::string& query) {
+    std::string filename, meshfile;
+    // convert query to lowercase
+    for (const char& c : query) filename += std::tolower(c);
+
+    for (const RenderShapeData& shape: m_shapes) {
+        // convert meshfile to lowercase
+        for (const char& c : shape.primitive.meshfile) {
+            meshfile += std::tolower(c);
+        }
+
+        // compare
+        if (meshfile.find(filename) != std::string::npos) {
+            return shape.primitive.meshfile;
+        }
+
+        // clear lowercase meshfile string for next iteration
+        meshfile.clear();
+    }
+
+    return "";
 }

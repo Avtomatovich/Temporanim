@@ -75,4 +75,7 @@ private slots:
     void onEnableRotation();
     void onEnableCollisions();
     void onExtraCredit4();
+
+    // Reset extra credit checkboxes
+    void onSceneLoaded();
 };

@@ -4,8 +4,18 @@ Model::Model(const std::string& meshfile) :
     m_meshfile(meshfile)
 {}
 
+void Model::clean() {
+    for (auto& mesh : m_meshMap) {
+        mesh.second.clean();
+    }
+}
+
 const Geometry& Model::getGeom(int key) const {
     return m_meshMap.at(key);
+}
+
+const Box& Model::getBox() const {
+    return m_box;
 }
 
 void Model::addMesh(RenderShapeData& shape) {
@@ -16,8 +26,27 @@ void Model::addMesh(RenderShapeData& shape) {
     }
 }
 
-void Model::clean() {
-    for (auto& mesh : m_meshMap) {
-        mesh.second.clean();
+void Model::buildBox(const std::vector<RenderShapeData>& shapes,
+              const std::unordered_map<int, Collision>& collMap)
+{
+    m_box.min = glm::vec3{std::numeric_limits<float>::max()};
+    m_box.max = glm::vec3{std::numeric_limits<float>::lowest()};
+
+    // for each shape
+    for (int i = 0; i < shapes.size(); ++i) {
+        // if mesh is part of model
+        if (m_meshfile == shapes[i].primitive.meshfile) {
+            // fetch mesh AABB
+            const Box& meshBox = collMap.at(i).getBox();
+            // store min and max per dim
+            for (int j = 0; j < 3; ++j) {
+                m_box.min[j] = std::min(m_box.min[j], meshBox.min[j]);
+                m_box.max[j] = std::max(m_box.max[j], meshBox.max[j]);
+            }
+        }
     }
+
+    // scale down AABB
+    m_box.min *= 0.8f;
+    m_box.max *= 0.8f;
 }

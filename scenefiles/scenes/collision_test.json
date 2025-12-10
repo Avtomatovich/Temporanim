@@ -1,5 +1,5 @@
 {
-  "name": "main_scene",
+  "name": "collision_test",
   "globalData": {
     "ambientCoeff": 1,
     "diffuseCoeff": 1,
@@ -54,11 +54,11 @@
       "primitives": [
         {
           "type": "mesh",
-          "ambient": [0.2, 0.2, 0.7],
+          "ambient": [0.2, 0.2, 0.2],
           "meshFile": "models/paladin/idle_paladin.dae",
-          "diffuse": [0.23, 0.33, 0.99],
+          "diffuse": [0.5, 0.5, 0.5],
           "specular": [1, 1, 1],
-          "shininess": 30.0
+          "shininess": 30
         }
       ],
       "scale": [0.01, 0.01, 0.01]
@@ -72,13 +72,10 @@
           "specular": [0, 0, 0],
           "shininess": 1,
           "type": "cube",
-          "textureFile": "textures/Bricks076A_Color.jpg",
+          "textureFile": "textures/bricks.jpg",
           "blend": 1.0,
-          "textureU": 3.0,
-          "textureV": 3.0,
-          "bumpMapFile": "textures/Bricks076A_NormalGL.jpg",
-          "bumpMapU": 3.0,
-          "bumpMapV": 3.0
+          "textureU": 5.0,
+          "textureV": 5.0
         }
       ],
       "translate": [5, 2.5, 0],
@@ -93,13 +90,10 @@
           "specular": [0, 0, 0],
           "shininess": 1,
           "type": "cube",
-          "textureFile": "textures/Bricks076A_Color.jpg",
+          "textureFile": "textures/bricks.jpg",
           "blend": 1.0,
-          "textureU": 3.0,
-          "textureV": 3.0,
-          "bumpMapFile": "textures/Bricks076A_NormalGL.jpg",
-          "bumpMapU": 3.0,
-          "bumpMapV": 3.0
+          "textureU": 5.0,
+          "textureV": 5.0
         }
       ],
       "translate": [-5, 2.5, 0],
@@ -114,13 +108,10 @@
           "specular": [0, 0, 0],
           "shininess": 1,
           "type": "cube",
-          "textureFile": "textures/Bricks076A_Color.jpg",
+          "textureFile": "textures/bricks.jpg",
           "blend": 1.0,
-          "textureU": 3.0,
-          "textureV": 3.0,
-          "bumpMapFile": "textures/Bricks076A_NormalGL.jpg",
-          "bumpMapU": 3.0,
-          "bumpMapV": 3.0
+          "textureU": 5.0,
+          "textureV": 5.0
         }
       ],
       "translate": [0, 2.5, -5],
@@ -140,88 +131,25 @@
           "textureV": 5.0
         }
       ],
-      "translate": [0, 0, 0],
+      "translate": [0, -0.1, 0],
       "scale": [10, 0.1, 10]
     },
     {
-      "name": "Sweet Potato",
-      "translate": [0, 0, 6],
-      "scale": [2.5, 2.5, 2.5],
-      "primitives": [
-        {
-          "type": "mesh",
-          "ambient": [0.4, 0.4, 0.4],
-          "meshFile": "models/potato/scene.gltf",
-          "diffuse": [0.5, 0.5, 0.5],
-          "specular": [1.0, 1.0, 1.0],
-          "shininess": 30.0,
-          "dynamic": true
-        }
-      ]
-    },
-    {
       "name": "Cabbage",
-      "translate": [0, 0, 6],
-      "scale": [2.5, 2.5, 2.5],
       "primitives": [
         {
           "type": "mesh",
-          "ambient": [0.4, 0.4, 0.4],
+          "ambient": [0.2, 0.2, 0.2],
           "meshFile": "models/cabbage/scene.gltf",
           "diffuse": [0.5, 0.5, 0.5],
-          "specular": [1.0, 1.0, 1.0],
+          "specular": [0.5, 0.5, 0.5],
           "shininess": 30.0,
           "dynamic": true
         }
-      ]
-    },
-    {
-      "name": "Carrot",
-      "translate": [0, 0, 6],
+      ],
       "scale": [2.5, 2.5, 2.5],
-      "primitives": [
-        {
-          "type": "mesh",
-          "ambient": [0.4, 0.4, 0.4],
-          "meshFile": "models/carrot/scene.gltf",
-          "diffuse": [0.5, 0.5, 0.5],
-          "specular": [1.0, 1.0, 1.0],
-          "shininess": 30.0,
-          "dynamic": true
-        }
-      ]
-    },
-    {
-      "name": "Apple",
-      "translate": [0, 0, 6],
-      "scale": [2.5, 2.5, 2.5],
-      "primitives": [
-        {
-          "type": "mesh",
-          "ambient": [0.4, 0.4, 0.4],
-          "meshFile": "models/apple/scene.gltf",
-          "diffuse": [0.5, 0.5, 0.5],
-          "specular": [1.0, 1.0, 1.0],
-          "shininess": 30.0,
-          "dynamic": true
-        }
-      ]
-    },
-    {
-      "name": "Onion",
-      "translate": [0, 0, 6],
-      "scale": [2.5, 2.5, 2.5],
-      "primitives": [
-        {
-          "type": "mesh",
-          "ambient": [0.4, 0.4, 0.4],
-          "meshFile": "models/onion/scene.gltf",
-          "diffuse": [0.5, 0.5, 0.5],
-          "specular": [1.0, 1.0, 1.0],
-          "shininess": 30.0,
-          "dynamic": true
-        }
-      ]
+      "rotate": [1.0, 0.0, 0.0, -90.0],
+      "translate": [1.0, 2.0, 0.0]
     }
   ]
 }

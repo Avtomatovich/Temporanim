@@ -196,7 +196,7 @@ void MainWindow::initialize() {
 
     // Set default values for near and far planes
     onValChangeNearBox(0.1f);
-    onValChangeFarBox(10.f);
+    onValChangeFarBox(100.f); // change from 10 to 100
 }
 
 void MainWindow::finish() {
@@ -263,6 +263,9 @@ void MainWindow::connectExtraCredit() {
     connect(ec2, &QCheckBox::clicked, this, &MainWindow::onEnableRotation);
     connect(ec3, &QCheckBox::clicked, this, &MainWindow::onEnableCollisions);
     connect(ec4, &QCheckBox::clicked, this, &MainWindow::onExtraCredit4);
+
+    // connect scene loaded signal to slot for checkbox resets
+    connect(realtime, &Realtime::sceneLoaded, this, &MainWindow::onSceneLoaded);
 }
 
 // From old Project 6
@@ -373,5 +376,20 @@ void MainWindow::onEnableCollisions() {
 
 void MainWindow::onExtraCredit4() {
     settings.extraCredit4 = !settings.extraCredit4;
+    realtime->settingsChanged();
+}
+
+void MainWindow::onSceneLoaded() {
+    // Reset checkboxes and related settings
+    ec1->setChecked(false);
+    ec2->setChecked(false);
+    ec3->setChecked(false);
+    ec4->setChecked(false);
+
+    settings.enableGravity = false;
+    settings.enableRotation = false;
+    settings.enableCollisions = false;
+    settings.extraCredit4 = false;
+
     realtime->settingsChanged();
 }
