@@ -62,7 +62,11 @@ Scene::Scene(const RenderData& metaData,
         if (shape.primitive.isDynamic) {
             std::cout << "dynamic shape added" << std::endl;
             // Use default mass of 1.f
-            m_physMap.emplace(i, RigidBody{shape.primitive.type, 1.f, shape.ctm});
+            m_physMap.emplace(i, RigidBody{shape.primitive.type,
+                                           1.f,
+                                           shape.ctm,
+                                           m_collMap.at(i).getBox()});
+
         }
 
         // Add texture map to slot 0 if used

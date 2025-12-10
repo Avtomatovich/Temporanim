@@ -2,11 +2,10 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-RigidBody::RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initCtm)
+RigidBody::RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initCtm, const Box& box)
     : type(shapeType), mass(m), ctm(initCtm)
 {
     // TODO: compute mass using constant density factor and computed volume
-
     reset();
 
     // inertia tensor based on shape type
@@ -23,27 +22,12 @@ RigidBody::RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initCtm)
         case PrimitiveType::PRIMITIVE_CONE:
             Ibody = computeConeInertia(mass, 0.5f * scale.x, scale.y);
             break;
+        case PrimitiveType::PRIMITIVE_MESH:
+            Ibody = computeCubeInertia(mass, box.max - box.min);
         default:
             Ibody = glm::mat3(1.f);
             break;
     }
-
-    // Precompute inverse
-    IbodyInv = glm::inverse(Ibody);
-
-    // Compute initial auxiliary variables
-    computeAuxiliaryVariables();
-}
-
-RigidBody::RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initCtm, const Box& box)
-    : type(shapeType), mass(m), ctm(initCtm)
-{
-    // TODO: compute mass using constant density factor and computed volume
-
-    reset();
-
-    // inertia tensor for mesh which uses AABB
-    Ibody = computeCubeInertia(mass, box.max - box.min);
 
     // Precompute inverse
     IbodyInv = glm::inverse(Ibody);

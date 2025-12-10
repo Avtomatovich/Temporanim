@@ -2,11 +2,10 @@
 
 - [x] fix build issue on mac machine
 - [x] verify physics integration
-- [ ] gather assets + animations
-  - [ ] another knight model
-  - [ ] maybe shield mesh? (add to character in Blender)
-- [ ] create quick market scene (in Blender?) or just use what we have
-  - [ ] find better brick texture with normal mapping
+- [ ] improve what we have
+  - [ ] gather assets + animations
+    - [ ] find better brick texture with normal mapping
+    - [ ] find another knight model with pre-baked shield
 - [ ] create + edit demo vid
 
 ## Samson

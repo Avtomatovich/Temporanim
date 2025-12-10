@@ -8,8 +8,6 @@
 
 class RigidBody {
 public:
-    RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initCtm);
-
     RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initCtm, const Box& box);
 
     void reset();
