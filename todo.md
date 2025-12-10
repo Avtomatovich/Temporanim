@@ -6,6 +6,7 @@
 
 ## Samson
 
+- [ ] add support for embedded textures
 - [x] add collision logic
   - [x] enclose meshes in AABBs for collisions
   - [x] sphere-sphere
@@ -31,8 +32,8 @@
 ## Carlos
 
 - [x] compute mass using constant density factor and computed volume
-- [ ] add projectile logic
-  - [ ] add spawn logic (randomized)
-  - [ ] add despawn logic (when new projectile is thrown)
-  - [ ] add throwing logic
-- [ ] maybe skybox?
+- [x] add projectile logic
+  - [x] add spawn logic (randomized)
+  - [x] add despawn logic (when new projectile is thrown)
+  - [x] add throwing logic
+- [ ] test projectile logic
