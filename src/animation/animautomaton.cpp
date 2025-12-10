@@ -6,12 +6,11 @@ AnimAutomaton::AnimAutomaton(const Model &model,
 {}
 
 void AnimAutomaton::update(float dt) {
-    if (m_state == AnimState::HIT) {
-        m_state = AnimState::IDLE;
-
-        if (m_animator.atEnd()) {
-            for (const std::string& animName: {"idle", "stand"}) {
-                if (m_animator.swap(animName, true)) break;
+    if (m_state == AnimState::HIT && m_animator.atEnd()) {
+        for (const std::string& animName: {"idle", "stand"}) {
+            if (m_animator.swap(animName, true)) {
+                m_state = AnimState::IDLE;
+                break;
             }
         }
     }

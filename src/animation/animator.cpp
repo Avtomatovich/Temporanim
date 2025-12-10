@@ -37,6 +37,8 @@ void Animator::update(float deltaTime) {
 
     // If not looping and ticks exceeds duration, mark end and return
     if (!m_isLooping && m_ticks >= m_anim->duration) {
+        m_ticks = m_anim->duration;
+        computeSkinMats(m_ticks);
         m_atEnd = true;
         return;
     }
@@ -91,9 +93,15 @@ bool Animator::swap(std::string name, bool isLooping) {
     for (const Animation& anim : m_anims) {
         for (const char& c : anim.name) animName += std::tolower(c);
 
+        // if matched
         if (animName.find(query) != std::string::npos) {
+            // set to current anim
             m_anim = std::make_unique<Animation>(anim);
+            // assign looping bool
             m_isLooping = isLooping;
+            // reset anim
+            reset();
+            // return true
             return true;
         }
 

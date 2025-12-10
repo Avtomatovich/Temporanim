@@ -29,8 +29,8 @@ void Model::addMesh(RenderShapeData& shape) {
 void Model::buildBox(const std::vector<RenderShapeData>& shapes,
               const std::unordered_map<int, Collision>& collMap)
 {
-    m_box.min = glm::vec3{std::numeric_limits<float>::min()};
-    m_box.max = glm::vec3{std::numeric_limits<float>::max()};
+    m_box.min = glm::vec3{std::numeric_limits<float>::max()};
+    m_box.max = glm::vec3{std::numeric_limits<float>::lowest()};
 
     // for each shape
     for (int i = 0; i < shapes.size(); ++i) {
@@ -45,4 +45,8 @@ void Model::buildBox(const std::vector<RenderShapeData>& shapes,
             }
         }
     }
+
+    // scale down AABB
+    m_box.min *= 0.8f;
+    m_box.max *= 0.8f;
 }

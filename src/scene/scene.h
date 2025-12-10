@@ -70,7 +70,7 @@ private:
     bool m_torqueEnabled = false;
     bool m_collisionEnabled = false;
 
-    std::optional<AnimAutomaton> animAutomaton;
+    std::unique_ptr<AnimAutomaton> m_automaton;
 
     void addPrim(const RenderShapeData& shape, int param1, int param2);
     const Geometry& getGeom(const RenderShapeData& shape);

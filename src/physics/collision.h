@@ -17,6 +17,8 @@ public:
 
     bool detect(const Collision& that) const;
 
+    bool detect(const Box& that) const;
+
 private:
     PrimitiveType type;
     glm::vec3 center, height;

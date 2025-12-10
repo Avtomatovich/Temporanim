@@ -6,14 +6,14 @@
 
 ## Samson
 
-- [ ] add collision logic
+- [x] add collision logic
   - [x] enclose meshes in AABBs for collisions
   - [x] sphere-sphere
   - [x] box-box
   - [x] cube-box (for floors and walls)
   - [x] add rigid body logic to meshes
   - [x] collision loop
-  - [ ] update character AABBs for animated models
+  - [x] update character AABBs for animated models
 - [ ] add logic for character hit animation
   - [x] create animation state machine for model
   - [ ] gather assets + animations
