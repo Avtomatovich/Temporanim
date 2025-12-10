@@ -85,6 +85,14 @@ Scene::Scene(const RenderData& metaData,
             }
         }
     }
+
+    // find meshfile of animated model and init animation state machine
+    std::string meshfile = findMeshfile("paladin");
+    if (meshfile.empty()) {
+        std::cerr << "Missing paladin model for state machine" << std::endl;
+    } else {
+        animAutomaton = AnimAutomaton{m_modelMap.at(meshfile), m_animMap.at(meshfile)};
+    }
 }
 
 bool Scene::draw(GLuint shader) {
@@ -195,6 +203,7 @@ void Scene::retessellate(int param1, int param2) {
 
 void Scene::updateAnim(float dt) {
     for (auto& [_, anim] : m_animMap) anim.update(dt);
+    if (animAutomaton.has_value()) animAutomaton->update(dt);
 }
 
 void Scene::playAnim() {
@@ -202,7 +211,7 @@ void Scene::playAnim() {
 }
 
 void Scene::swapAnim(bool toNext) {
-    for (auto& [_, anim] : m_animMap) anim.swap(toNext);
+    for (auto& [_, anim] : m_animMap) anim.swap(toNext, true);
 }
 
 void Scene::toggleNormalMap() {
@@ -210,7 +219,7 @@ void Scene::toggleNormalMap() {
 }
 
 void Scene::updatePhys(float dt) {
-    if (!m_gravityEnabled && !m_torqueEnabled && !m_collisionsEnabled) {
+    if (!m_gravityEnabled && !m_torqueEnabled && !m_collisionEnabled) {
         for (auto& [_, rb] : m_physMap) rb.reset();
         return;
     }
@@ -239,7 +248,7 @@ void Scene::updatePhys(float dt) {
     for (auto& [_, rb] : m_physMap) rb.integrate(dt);
 
     // collision
-    if (m_collisionsEnabled) {
+    if (m_collisionEnabled) {
         // update dynamic AABBs
         for (auto& [rid, rb] : m_physMap) m_collMap.at(rid).updateBox(rb.getCtm());
 
@@ -255,6 +264,9 @@ void Scene::updatePhys(float dt) {
                 if (affector.detect(affectee)) {
                     std::cout << "collision detected" << std::endl;
 
+                    // change animation state from idle to hit
+                    if (animAutomaton.has_value()) animAutomaton->onHit();
+
                     // TODO: determine reaction forces
                     // rb.handleForces();
 
@@ -264,4 +276,27 @@ void Scene::updatePhys(float dt) {
             }
         }
     }
+}
+
+std::string Scene::findMeshfile(const std::string& query) {
+    std::string filename, meshfile;
+    // convert query to lowercase
+    for (const char& c : query) filename += std::tolower(c);
+
+    for (const RenderShapeData& shape: m_shapes) {
+        // convert meshfile to lowercase
+        for (const char& c : shape.primitive.meshfile) {
+            meshfile += std::tolower(c);
+        }
+
+        // compare
+        if (meshfile.find(filename) != std::string::npos) {
+            return shape.primitive.meshfile;
+        }
+
+        // clear lowercase meshfile string for next iteration
+        meshfile.clear();
+    }
+
+    return "";
 }

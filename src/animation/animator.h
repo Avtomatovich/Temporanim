@@ -13,13 +13,17 @@ public:
 
     const bool hasAnim() const;
 
+    const bool atEnd() const;
+
     void update(float deltaTime);
 
     void play();
 
-    void swap(bool toNext);
+    void reset();
 
-    bool swap(std::string name);
+    void swap(bool toNext, bool isLooping);
+
+    bool swap(std::string name, bool isLooping);
 
 private:
     const std::vector<Animation>& m_anims;
@@ -31,6 +35,8 @@ private:
     float m_ticks = 0.f;
     std::vector<glm::mat4> m_skinMats{m_skeleton.size(), glm::mat4{1.f}};
     bool m_isPlaying = true;
+    bool m_isLooping = true;
+    bool m_atEnd = false;
 
     void computeSkinMats(float now);
     void computeBoneMats(float now);
@@ -39,8 +45,6 @@ private:
 
     int getNextIdx(const auto& keyframes, float now);
     glm::mat4 lerper(const auto& keyframes, float now);
-
-    void reset();
 };
 
 #endif // ANIMATOR_H

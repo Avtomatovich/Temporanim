@@ -15,7 +15,7 @@
   - [x] collision loop
   - [ ] update character AABBs for animated models
 - [ ] add logic for character hit animation
-  - [ ] create animation state machine for model
+  - [x] create animation state machine for model
   - [ ] gather assets + animations
     - [x] find and add better brick texture with normal mapping
     - [x] fetch knight model from mixamo with pre-baked shield
