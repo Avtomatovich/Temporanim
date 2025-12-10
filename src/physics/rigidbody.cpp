@@ -59,7 +59,7 @@ void RigidBody::reset() {
     computeAuxiliaryVariables();
 }
 
-glm::mat4 RigidBody::getTransformMatrix() const {
+glm::mat4 RigidBody::getCtm() const {
     // Translation * Rotation * Scale
     glm::mat4 T = glm::translate(glm::mat4{1.f}, x_t);
     glm::mat4 S = glm::scale(glm::mat4{1.f}, scale);
