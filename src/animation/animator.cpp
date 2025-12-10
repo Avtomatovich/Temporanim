@@ -3,6 +3,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <stdexcept>
 #include <algorithm>
+#include <iostream>
 
 Animator::Animator(const AnimData& animData) :
     m_anims(animData.animations),
@@ -66,6 +67,29 @@ void Animator::swap(bool toNext) {
     m_anim = std::make_unique<Animation>(*m_animIter);
 
     reset();
+}
+
+bool Animator::swap(std::string name) {
+    if (m_anims.empty()) return true;
+
+    std::string lower, upper, cap;
+    for (const char& c : name) {
+        lower += std::tolower(c);
+        upper += std::toupper(c);
+    }
+    cap = lower;
+    cap[0] = std::toupper(cap[0]);
+
+    for (const Animation& anim : m_anims) {
+        for (const std::string& animName : {lower, upper, cap}) {
+            if (anim.name.find(animName) != std::string::npos) {
+                m_anim = std::make_unique<Animation>(anim);
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void Animator::computeSkinMats(float now) {

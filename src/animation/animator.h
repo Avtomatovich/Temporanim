@@ -19,6 +19,8 @@ public:
 
     void swap(bool toNext);
 
+    bool swap(std::string name);
+
 private:
     const std::vector<Animation>& m_anims;
     const std::vector<Bone>& m_skeleton;
