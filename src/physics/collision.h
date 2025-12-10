@@ -19,9 +19,15 @@ private:
     PrimitiveType type;
     glm::vec3 center, height;
     float radius;
+
+    // world space AABB
     Box box;
 
+    // object space min, max
+    glm::vec3 min, max;
+
     bool boxBox(const Box& b0, const Box& b1);
+    bool cubeBox(const Collision& cube, const Box& box);
 };
 
 #endif // COLLISION_H
