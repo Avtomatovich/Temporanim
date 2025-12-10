@@ -1032,7 +1032,7 @@ bool ScenefileReader::parsePrimitive(const QJsonObject &prim, SceneNode *node) {
             return false;
         }
 
-        primitive->isDynamic = prim["static"].toBool();
+        primitive->isDynamic = prim["dynamic"].toBool();
     }
 
     return true;

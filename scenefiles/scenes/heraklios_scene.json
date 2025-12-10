@@ -1,5 +1,5 @@
 {
-  "name": "anim_scene",
+  "name": "heraklios_scene",
   "globalData": {
     "ambientCoeff": 1,
     "diffuseCoeff": 1,
@@ -54,9 +54,9 @@
       "primitives": [
         {
           "type": "mesh",
-          "ambient": [0.2, 0.2, 0.7],
+          "ambient": [0.2, 0.2, 0.2],
           "meshFile": "models/heraklios/heraklios_kick.dae",
-          "diffuse": [0.23, 0.33, 0.99],
+          "diffuse": [0.5, 0.5, 0.5],
           "specular": [1, 1, 1],
           "shininess": 30
         }

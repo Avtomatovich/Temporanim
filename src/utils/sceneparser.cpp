@@ -3,7 +3,7 @@
 #include "modelparser.h"
 #include <glm/gtx/transform.hpp>
 
-void SceneParser::buildRenderData(RenderData& renderData, SceneNode* node, glm::mat4 ctm) {
+void buildRenderData(RenderData& renderData, SceneNode* node, glm::mat4 ctm) {
     if (node == nullptr) return;
 
     for (SceneTransformation* transform : node->transformations) {

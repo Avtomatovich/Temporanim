@@ -156,7 +156,7 @@ void MainWindow::initialize() {
     ec2->setChecked(false);
 
     ec3 = new QCheckBox();
-    ec3->setText(QStringLiteral("Enable Sphere Bouncing"));
+    ec3->setText(QStringLiteral("Enable Collisions"));
     ec3->setChecked(false);
 
     ec4 = new QCheckBox();

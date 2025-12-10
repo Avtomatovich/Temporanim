@@ -4,14 +4,6 @@
 Collision::Collision(const RenderShapeData& shape)
     : type(shape.primitive.type)
 {
-    center = shape.ctm[3];
-    height = {
-        glm::length(glm::vec3{shape.ctm[0]}),
-        glm::length(glm::vec3{shape.ctm[1]}),
-        glm::length(glm::vec3{shape.ctm[2]})
-    };
-    radius = height[0] * 0.5f;
-
     if (type == PrimitiveType::PRIMITIVE_MESH) {
         auto x_cmp = [](const auto& a, const auto& b) {
             return a.pos.x < b.pos.x;
@@ -32,11 +24,16 @@ Collision::Collision(const RenderShapeData& shape)
         float z_min = std::min_element(shape.vertexData.begin(), shape.vertexData.end(), z_cmp)->pos.z;
         float z_max = std::max_element(shape.vertexData.begin(), shape.vertexData.end(), z_cmp)->pos.z;
 
-        box = Box{
-            shape.ctm * glm::vec4{x_min, y_min, z_min, 1.f},
-            shape.ctm * glm::vec4{x_max, y_max, z_max, 1.f}
-        };
+        // retain object space min, max
+        min = {x_min, y_min, z_min};
+        max = {x_max, y_max, z_max};
     }
+
+    updateBox(shape.ctm);
+}
+
+const Box& Collision::getBox() const {
+    return box;
 }
 
 void Collision::updateBox(const glm::mat4& ctm) {
@@ -49,9 +46,14 @@ void Collision::updateBox(const glm::mat4& ctm) {
     radius = height[0] * 0.5f;
 
     if (type == PrimitiveType::PRIMITIVE_MESH) {
+        // NOTE: ignore rotation to maintain axis alignment
+        glm::mat4 T = glm::translate(glm::mat4{1.f}, center);
+        glm::mat4 S = glm::scale(glm::mat4{1.f}, height);
+        
+        // convert from object space to world space
         box = Box{
-            ctm * glm::vec4{box.min, 1.f},
-            ctm * glm::vec4{box.max, 1.f}
+            T * S * glm::vec4{min, 1.f},
+            T * S * glm::vec4{max, 1.f}
         };
     }
 }
@@ -60,30 +62,46 @@ bool Collision::detect(const Collision& collider) {
     // sphere-sphere
     if (type == PrimitiveType::PRIMITIVE_SPHERE && collider.type == PrimitiveType::PRIMITIVE_SPHERE ||
         collider.type == PrimitiveType::PRIMITIVE_SPHERE && type == PrimitiveType::PRIMITIVE_SPHERE) {
-        if (glm::distance(center, collider.center) < (radius + collider.radius)) {
-            return true;
-        }
+        return glm::distance(center, collider.center) < (radius + collider.radius);
     }
 
     // box-box
-    if (type == PrimitiveType::PRIMITIVE_SPHERE && collider.type == PrimitiveType::PRIMITIVE_MESH) {
+    if (type == PrimitiveType::PRIMITIVE_MESH && collider.type == PrimitiveType::PRIMITIVE_MESH) {
         return boxBox(this->getBox(), collider.getBox());
     }
-    if (collider.type == PrimitiveType::PRIMITIVE_SPHERE && type == PrimitiveType::PRIMITIVE_MESH) {
+    if (collider.type == PrimitiveType::PRIMITIVE_MESH && type == PrimitiveType::PRIMITIVE_MESH) {
         return boxBox(collider.getBox(), this->getBox());
+    }
+
+    // cube-box
+    if (type == PrimitiveType::PRIMITIVE_CUBE && collider.type == PrimitiveType::PRIMITIVE_MESH) {
+        return cubeBox(collider, this->getBox());
+    }
+    if (type == PrimitiveType::PRIMITIVE_MESH && collider.type == PrimitiveType::PRIMITIVE_CUBE) {
+        return cubeBox(*this, collider.getBox());
     }
 
     return false;
 }
 
-bool boxBox(const Box& b0, const Box& b1) {
-    // TODO: box-box
-    for (int i = 0; i < 2; ++i) {
-        if (b1.min[i] < b0.max[i] ||
-            b1.max[i] > b0.min[i]) {
+bool Collision::boxBox(const Box& b0, const Box& b1) {
+    for (int i = 0; i < 3; ++i) {
+        if (b0.max[i] < b1.min[i] || b1.max[i] < b0.min[i]) {
             return false;
         }
     }
 
     return true;
+}
+
+bool Collision::cubeBox(const Collision& cube, const Box& box) {
+    // NOTE: assume cube is axis-aligned
+    Box cubeBox;
+
+    for (int i = 0; i < 3; ++i) {
+        cubeBox.min[i] = cube.center[i] - cube.height[i] / 2;
+        cubeBox.max[i] = cube.center[i] + cube.height[i] / 2;
+    }
+
+    return boxBox(cubeBox, box);
 }

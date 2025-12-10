@@ -53,12 +53,20 @@ Scene::Scene(const RenderData& metaData,
             if (!m_primMap.contains(getGeomKey(shape))) {
                 addPrim(shape, param1, param2);
             }
+        }
 
-            // Add rigid body to phys map if dynamic
-            if (shape.primitive.isDynamic) {
-                // Use default mass of 1.f
-                m_physMap.emplace(i, RigidBody{shape.primitive.type, 1.f, shape.ctm});
-            }
+        // Add collision instance to collision map
+        m_collMap.emplace(i, shape);
+
+        // Add rigid body to phys map if dynamic
+        if (shape.primitive.isDynamic) {
+            std::cout << "dynamic shape added" << std::endl;
+            // Use default mass of 1.f
+            m_physMap.emplace(i, RigidBody{shape.primitive.type,
+                                           1.f,
+                                           shape.ctm,
+                                           m_collMap.at(i).getBox()});
+
         }
 
         // Add texture map to slot 0 if used
@@ -78,9 +86,6 @@ Scene::Scene(const RenderData& metaData,
                 m_texMap.emplace(filename, Texture{filename, 1});
             }
         }
-
-        // Add collision instance to collision map
-        m_collMap.emplace(i, shape);
     }
 }
 
