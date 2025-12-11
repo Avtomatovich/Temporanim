@@ -80,10 +80,10 @@ bool Collision::detect(const Collision& that) const {
 
     // cube-box
     if (this->type == PrimitiveType::PRIMITIVE_CUBE && that.type == PrimitiveType::PRIMITIVE_MESH) {
-        return cubeBox(that, this->getBox());
+        return cubeBox(*this, that.getBox());
     }
     if (this->type == PrimitiveType::PRIMITIVE_MESH && that.type == PrimitiveType::PRIMITIVE_CUBE) {
-        return cubeBox(*this, that.getBox());
+        return cubeBox(that, this->getBox());
     }
 
     return false;
