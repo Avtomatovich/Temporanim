@@ -5,6 +5,7 @@
 #include "primitive/sphere.h"
 #include "utils/uniloader.h"
 #include "utils/debug.h"
+#include <algorithm>
 
 using namespace Debug;
 using namespace UniLoader;
@@ -244,7 +245,6 @@ void Scene::retessellate(int param1, int param2) {
 
 void Scene::updateAnim(float dt) {
     for (auto& [_, anim] : m_animMap) anim.update(dt);
-    if (m_automaton) m_automaton->update(dt);
 }
 
 void Scene::playAnim() {
@@ -358,28 +358,7 @@ void Scene::updateProjectiles(float dt) {
         proj.updateRenderData();
 
         // check collision with ground (bounce like sphere)..?
-        proj.getRigidBody().bounceSphere(0.0f);  // Ground at y=0
-
-        if (m_collisionEnabled) {
-            const std::string& paladin = findMeshfile("paladin");
-
-            for (const auto& [cid, affectee] : m_collMap) {
-                const std::string& meshfile = m_shapes.at(cid).primitive.meshfile;
-
-                if (!meshfile.empty() && m_animMap.contains(meshfile)) {
-                    if (proj.getCollision().detect(m_modelMap.at(meshfile).getBox())) {
-                        std::cout << "Projectile hit character!" << std::endl;
-
-                        if (m_automaton && paladin == meshfile) {
-                            m_automaton->onHit();
-                        }
-
-                        proj.markHit();
-                        break;
-                    }
-                }
-            }
-        }
+        proj.getRigidBody().handleForces();
     }
 
     // Remove projectiles that should be deleted
@@ -428,55 +407,19 @@ void Scene::updatePhys(float dt) {
         // update dynamic AABBs
         for (auto& [rid, rb] : m_physMap) m_collMap.at(rid).updateBox(rb.getCtm());
 
-        // store meshfile that matches paladin
-        const std::string& paladin = findMeshfile("paladin");
-
-        // bool to avoid repeat collisions of meshes in same model
-        bool isHit = false;
-
         // for each dynamic object
         for (auto& [rid, rb] : m_physMap) {
             // store const ref of affector collision
             Collision& affector = m_collMap.at(rid);
-
             // check each collision object (static + dynamic)
             for (const auto& [cid, affectee] : m_collMap) {
-
                 // skip self and previously collided dynamics
                 if (cid == rid || (m_physMap.contains(cid) && cid <= rid)) continue;
-
-                // get meshfile of collision obj
-                const std::string& meshfile = m_shapes.at(cid).primitive.meshfile;
-
-                // if collision obj is animated
-                if (!meshfile.empty() && m_animMap.contains(meshfile)) {
-
-                    // check collision against model AABB
-                    if (affector.detect(m_modelMap.at(meshfile).getBox())) {
-                        std::cout << "collision detected" << std::endl;
-
-                        // change animation state from idle to hit
-                        if (!isHit && m_automaton && paladin == meshfile) {
-                            m_automaton->onHit();
-                            isHit = true;
-                        }
-
-                        // TODO: determine reaction forces
-                        // rb.handleForces();
-
-                        // determine affectee's reaction forces if affectee is dynamic
-                        // if (m_physMap.contains(cid)) m_physMap.at(cid).handleForces();
-
-                        // skip default conditional
-                        continue;
-                    }
-                }
 
                 // if collision detected
                 if (affector.detect(affectee)) {
                     std::cout << "collision detected" << std::endl;
 
-                    // TODO: determine reaction forces
                     rb.handleForces();
 
                     // determine affectee's reaction forces if affectee is dynamic

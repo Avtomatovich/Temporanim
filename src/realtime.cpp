@@ -194,11 +194,16 @@ void Realtime::keyPressEvent(QKeyEvent *event) {
             glm::vec3 camPos = m_metaData->cameraData.pos;
             glm::vec3 camLook = glm::normalize(m_metaData->cameraData.look);
 
+            // DEBUG: Print camera direction
+            std::cout << "camLook: " << camLook.x << ", " << camLook.y << ", " << camLook.z << std::endl;
+
             // throw
             float speed = 10.0f;
-            glm::vec3 up = glm::vec3(0, 1, 0);
-            float upAngle = 0.2f + (rand() % 20) / 100.0f;  // 0.2 to 0.4
-            glm::vec3 throwDir = glm::normalize(camLook + up * upAngle);
+            glm::vec3 throwDir = camLook;  // Straight forward, no up angle
+            
+            // DEBUG: Print throw direction
+            std::cout << "throwDir: " << throwDir.x << ", " << throwDir.y << ", " << throwDir.z << std::endl;
+            
             glm::vec3 velocity = throwDir * speed;
             glm::vec3 spawnPos = camPos + camLook * 0.5f;
 

@@ -3,7 +3,6 @@
 
 #include <unordered_map>
 #include "animation/animator.h"
-#include "animation/animautomaton.h"
 #include "camera/camera.h"
 #include "geometry/model.h"
 #include "geometry/geometry.h"
@@ -72,15 +71,11 @@ private:
 
     void loadProjectileTemplate(FruitType type);
 
-    std::string findMeshfile(const std::string& query);
-
     bool m_normalMapToggled = true;
 
     bool m_gravityEnabled = false;
     bool m_torqueEnabled = false;
     bool m_collisionEnabled = false;
-
-    std::unique_ptr<AnimAutomaton> m_automaton;
 
     void addPrim(const RenderShapeData& shape, int param1, int param2);
     const Geometry& getGeom(const RenderShapeData& shape);

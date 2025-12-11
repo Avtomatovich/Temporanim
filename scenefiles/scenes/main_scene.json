@@ -145,7 +145,7 @@
     },
     {
       "name": "Sweet Potato",
-      "translate": [0, 0, 6],
+      "translate": [0, -5, 0],
       "scale": [2.5, 2.5, 2.5],
       "primitives": [
         {
@@ -161,7 +161,7 @@
     },
     {
       "name": "Cabbage",
-      "translate": [0, 0, 6],
+      "translate": [0, -5, 0],
       "scale": [2.5, 2.5, 2.5],
       "primitives": [
         {
@@ -177,7 +177,7 @@
     },
     {
       "name": "Carrot",
-      "translate": [0, 0, 6],
+      "translate": [0, -5, 0],
       "scale": [2.5, 2.5, 2.5],
       "primitives": [
         {
@@ -193,7 +193,7 @@
     },
     {
       "name": "Apple",
-      "translate": [0, 0, 6],
+      "translate": [0, -5, 0],
       "scale": [2.5, 2.5, 2.5],
       "primitives": [
         {
@@ -209,7 +209,7 @@
     },
     {
       "name": "Onion",
-      "translate": [0, 0, 6],
+      "translate": [0, -5, 0],
       "scale": [2.5, 2.5, 2.5],
       "primitives": [
         {

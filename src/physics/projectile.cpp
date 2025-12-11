@@ -1,5 +1,6 @@
 #include "projectile.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
 
 Projectile::Projectile(FruitType type,
                        const glm::vec3& startPos,
