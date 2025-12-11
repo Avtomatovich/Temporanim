@@ -85,24 +85,27 @@ Scene::Scene(const RenderData& metaData,
             }
         }
     }
-
-    // find meshfile of animated model and init animation state machine
-    std::string meshfile = findMeshfile("paladin");
-    if (meshfile.empty()) {
-        std::cerr << "Missing paladin model for state machine" << std::endl;
-    } else {
-        m_automaton = std::make_unique<AnimAutomaton>(
-            m_modelMap.at(meshfile),
-            m_animMap.at(meshfile)
-        );
-    }
-
+    
     loadProjectileTemplate(FruitType::APPLE);
     loadProjectileTemplate(FruitType::TOMATO);
     loadProjectileTemplate(FruitType::CABBAGE);
     loadProjectileTemplate(FruitType::CARROT);
     loadProjectileTemplate(FruitType::ONION);
     loadProjectileTemplate(FruitType::SWEET_POTATO);
+    
+    std::string meshfile = findMeshfile("paladin");
+    if (meshfile.empty()) {
+        std::cerr << "Missing paladin model" << std::endl;
+    } else {
+        // for each shape
+        for (int i = 0; i < m_shapes.size(); ++i) {
+            // if mesh is part of model
+            if (meshfile == m_shapes[i].primitive.meshfile) {
+                // fetch and scale down mesh AABB
+                m_collMap.at(i).scaleBox(0.8f);
+            }
+        }        
+    }
 }
 
 bool Scene::draw(GLuint shader) {
@@ -474,10 +477,10 @@ void Scene::updatePhys(float dt) {
                     std::cout << "collision detected" << std::endl;
 
                     // TODO: determine reaction forces
-                    // rb.handleForces();
+                    rb.handleForces();
 
                     // determine affectee's reaction forces if affectee is dynamic
-                    // if (m_physMap.contains(cid)) m_physMap.at(cid).handleForces();
+                    if (m_physMap.contains(cid)) m_physMap.at(cid).handleForces();
                 }
             }
         }

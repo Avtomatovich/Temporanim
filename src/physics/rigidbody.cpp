@@ -122,30 +122,19 @@ void RigidBody::applyImpulse(const glm::vec3& impulse) {
     P_t += impulse;
 }
 
-void RigidBody::bounceSphere(float groundY) {
-    if (type != PrimitiveType::PRIMITIVE_SPHERE) return;
+void RigidBody::handleForces() {
+    for (int i = 0; i < 3; ++i) {
+        if (v[i] < 0) {
+            v[i] = -v[i] * restitution;
 
-    // sphere radius
-    float radius = scale.x * 0.5f;
-
-    // if sphere hit ground
-    float bottomY = x_t.y - radius;
-
-    if (bottomY <= groundY) {
-        x_t.y = groundY + radius;
-
-        if (v.y < 0) {
-            v.y = -v.y * restitution;
-
-            // reduce horizontal velocity on impact
-            v.x *= 0.9f;
-            v.z *= 0.9f;
+            // dampen velocity on impact
+            v[i] *= 0.9f;
 
             // new linear momentum to match new velocity
-            P_t = mass * v;
+            P_t[i] = mass * v[i];
 
             // reduce spin on impact
-            L_t *= 0.95f;
+            L_t[i] *= 0.95f;
         }
     }
 }

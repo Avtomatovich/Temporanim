@@ -40,6 +40,13 @@ const Box& Collision::getBox() const {
     return box;
 }
 
+void Collision::scaleBox(float factor) {
+    glm::vec3 center = (box.max + box.min) * 0.5f;
+    glm::vec3 extents = (box.max - box.min) * 0.5f * factor;
+    box.min = center - extents;
+    box.max = center + extents;
+}
+
 void Collision::updateBox(const glm::mat4& ctm) {
     center = ctm[3];
     height = {
@@ -80,10 +87,10 @@ bool Collision::detect(const Collision& that) const {
 
     // cube-box
     if (this->type == PrimitiveType::PRIMITIVE_CUBE && that.type == PrimitiveType::PRIMITIVE_MESH) {
-        return cubeBox(that, this->getBox());
+        return cubeBox(*this, that.getBox());
     }
     if (this->type == PrimitiveType::PRIMITIVE_MESH && that.type == PrimitiveType::PRIMITIVE_CUBE) {
-        return cubeBox(*this, that.getBox());
+        return cubeBox(that, this->getBox());
     }
 
     return false;

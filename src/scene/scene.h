@@ -72,6 +72,8 @@ private:
 
     void loadProjectileTemplate(FruitType type);
 
+    std::string findMeshfile(const std::string& query);
+
     bool m_normalMapToggled = true;
 
     bool m_gravityEnabled = false;
