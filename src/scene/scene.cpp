@@ -256,10 +256,10 @@ void Scene::updatePhys(float dt) {
                     std::cout << "collision detected" << std::endl;
 
                     // TODO: determine reaction forces
-                    // rb.handleForces();
+                    rb.handleForces();
 
                     // determine affectee's reaction forces if affectee is dynamic
-                    // if (m_physMap.contains(cid)) m_physMap.at(cid).handleForces();
+                    if (m_physMap.contains(cid)) m_physMap.at(cid).handleForces();
                 }
             }
         }

@@ -20,7 +20,7 @@ public:
 
     void integrate(float dt);
 
-    void bounceSphere(float groundY);
+    void handleForces();
 
 private:
     glm::vec3 x_t{0.f};                   // position x(t) - center of mass
