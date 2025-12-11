@@ -21,7 +21,7 @@ public:
 
     void integrate(float dt);
 
-    void bounceSphere(float groundY);
+    void handleForces();
 
     void setVelocity(const glm::vec3& velocity) {
         v = velocity;

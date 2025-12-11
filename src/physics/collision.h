@@ -17,7 +17,7 @@ public:
 
     bool detect(const Collision& that) const;
 
-    bool detect(const Box& that) const;
+    void scaleBox(float factor);
 
 private:
     PrimitiveType type;
