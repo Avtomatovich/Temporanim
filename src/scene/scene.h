@@ -67,6 +67,8 @@ private:
     const Geometry& getGeom(const RenderShapeData& shape);
     int getGeomKey(const RenderShapeData& shape);
 
+    std::string findMeshfile(const std::string& query);
+
     bool m_normalMapToggled = true;
 
     bool m_gravityEnabled = false;

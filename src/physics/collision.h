@@ -17,6 +17,8 @@ public:
 
     bool detect(const Collision& that) const;
 
+    void scaleBox(float factor);
+
 private:
     PrimitiveType type;
     glm::vec3 center, height;
