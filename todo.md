@@ -6,7 +6,7 @@
 
 ## Samson
 
-- [ ] add support for embedded textures
+- [x] add support for embedded textures
 - [x] add collision logic
   - [x] enclose meshes in AABBs for collisions
   - [x] sphere-sphere
@@ -15,19 +15,19 @@
   - [x] add rigid body logic to meshes
   - [x] collision loop
   - [x] update character AABBs for animated models
-- [ ] add logic for character hit animation
+- [x] add logic for character hit animation
   - [x] create animation state machine for model
-  - [ ] gather assets + animations
+  - [x] gather assets + animations
     - [x] find and add better brick texture with normal mapping
     - [x] fetch knight model from mixamo with pre-baked shield
     - [x] fetch idle + hit animations
-    - [ ] combine animations + export from Blender
 - [x] find, add, test fruit/veg models (_mesh_)
   - [x] sweet potato
   - [x] cabbage
   - [x] carrot
   - [x] apple
   - [x] onion
+- [ ] combine animations + export from Blender (RIP)
 
 ## Carlos
 
@@ -37,3 +37,4 @@
   - [x] add despawn logic (when new projectile is thrown)
   - [x] add throwing logic
 - [ ] test projectile logic
+- [ ] impl force updates
