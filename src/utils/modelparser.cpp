@@ -1,5 +1,6 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
+#include <QImage>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
@@ -118,9 +119,9 @@ namespace ModelParser {
         }
     }
 
-    void updateTexture(aiMaterial* mtl, aiTextureType type, RenderShapeData& shape) {
+    void updateTexture(const aiScene* scene, aiMaterial* mtl, aiTextureType type, RenderShapeData& shape) {
         const std::string& meshfile = shape.primitive.meshfile;
-        aiString filename;
+        aiString aiFile;
         SceneFileMap& map = type == aiTextureType_DIFFUSE ?
                                shape.primitive.material.textureMap :
                                shape.primitive.material.bumpMap;
@@ -133,17 +134,70 @@ namespace ModelParser {
             if (type == aiTextureType_NORMALS) type = aiTextureType_HEIGHT;
         }
 
-        if (aiGetMaterialTexture(mtl, type, 0, &filename) == AI_SUCCESS) {
-            std::cout << "Fetched texture file name: " << filename.C_Str() << std::endl;
+        if (aiGetMaterialTexture(mtl, type, 0, &aiFile) == AI_SUCCESS) {
+            std::cout << "Fetched texture file name: " << aiFile.C_Str() << std::endl;
+
+            std::string file = aiFile.C_Str();
 
             // Set blend to 1 if it equals zero
             if (shape.primitive.material.blend == 0.f) shape.primitive.material.blend = 1.f;
 
             // Get meshfile parent path
-            fs::path parent = meshpath.parent_path();
+            fs::path filepath, parent = meshpath.parent_path();
+
+            // Process embedded texture
+            if (file.starts_with("*")) {
+                int idx = std::stoi(file.substr(1));
+
+                if (idx >= 0 && idx < scene->mNumTextures) {
+                    aiTexture* tex = scene->mTextures[idx];
+
+                    std::string hint = tex->achFormatHint;
+                    std::string extension = hint.empty() ? ".png" : "." + hint;
+                    std::string typeName = type == aiTextureType_DIFFUSE ? "diffuse_" : "normal_";
+                    filepath = fs::path{parent / fs::path("embedded_" + typeName + file.substr(1) + extension)};
+
+                    // Init QImage
+                    QImage data;
+
+                    if (tex->mHeight == 0) {
+                        // compressed into 1D
+                        data.loadFromData(
+                            reinterpret_cast<const uchar*>(tex->pcData),
+                            static_cast<int>(tex->mWidth)
+                        );
+                    } else {
+                        // 2D data
+                        data = QImage{
+                            reinterpret_cast<const uchar*>(tex->pcData),
+                            static_cast<int>(tex->mWidth),
+                            static_cast<int>(tex->mHeight),
+                            QImage::Format_RGBA8888
+                        };
+                    }
+
+                    // Throw exception if bad data
+                    if (data.isNull()) {
+                        throw std::runtime_error("Error loading texture: \"" + file.substr(1) + "\"");
+                    }
+
+                    // Format image to fit OpenGL
+                    data = data.flipped(Qt::Vertical);
+
+                    // Save to file using Qt
+                    if (!data.save(QString::fromStdString(filepath.string()))) {
+                        std::cerr << "Failed to save embedded texture to " << filepath.string() << std::endl;
+                    }
+
+                    map.isUsed = true;
+                    map.filename = filepath.string();
+                    return;
+                }
+
+            }
 
             // Build possible texture file path
-            fs::path filepath {parent / fs::path(filename.C_Str())};
+            filepath = fs::path{parent / fs::path(file)};
 
             // Mark texture as used and assign absolute path if present
             if (fs::exists(filepath)) {
@@ -152,10 +206,15 @@ namespace ModelParser {
                 return;
             }
 
+            // Extract filename only
+            std::string filename = filepath.filename().string();
+
             // Recurse over files in meshfile dir
             for (const auto& dir : fs::recursive_directory_iterator{parent}) {
-                // Check if dir is regular file and matches filename
-                if (dir.is_regular_file() && dir.path().filename().string() == filename.C_Str()) {
+                // Check if dir is regular file and matches either path or filename
+                if (dir.is_regular_file() &&
+                    (dir.path().filename().string() == file ||
+                     dir.path().filename().string() == filename)) {
                     // Mark texture as used, assign absolute path, break
                     map.isUsed = true;
                     map.filename = dir.path().string();
@@ -165,16 +224,17 @@ namespace ModelParser {
 
             // Throw exception if file is not found
             if (map.filename.empty()) {
-                std::cerr << "Missing texture file: " << filename.C_Str() << std::endl;
+                std::cerr << "Missing texture file: " << file << std::endl;
                 throw std::runtime_error("Failed to find texture file in mesh dir");
             }
 
-        } else std::cerr << "Failed to load texture file path from mesh file: " << meshfile << std::endl;
+            std::cout << std::endl;
+            return;
 
-        std::cout << std::endl;
+        } else std::cerr << "Failed to load texture file path from mesh file: " << meshfile << std::endl;
     }
 
-    void updateMaterial(aiMaterial* mtl, RenderShapeData& shape) {
+    void updateMaterial(const aiScene* scene, aiMaterial* mtl, RenderShapeData& shape) {
         // Init material vars
         aiColor4D ambient, diffuse, specular;
         float shininess, blend;
@@ -205,10 +265,10 @@ namespace ModelParser {
         } else std::cerr << "Failed to load diffuse blend factor from mesh data" << std::endl;
 
         // Update diffuse texture
-        updateTexture(mtl, aiTextureType_DIFFUSE, shape);
+        updateTexture(scene, mtl, aiTextureType_DIFFUSE, shape);
 
         // Update normal map
-        updateTexture(mtl, aiTextureType_NORMALS, shape);
+        updateTexture(scene, mtl, aiTextureType_NORMALS, shape);
     }
 
     void buildMeshData(RenderData& renderData,
@@ -299,7 +359,7 @@ namespace ModelParser {
 
                 // Update material if not default
                 if (std::string(name.C_Str()) != "DefaultMaterial") {
-                    updateMaterial(mtl, shape);
+                    updateMaterial(scene, mtl, shape);
                 }
             }
 

@@ -55,7 +55,7 @@
         {
           "type": "mesh",
           "ambient": [0.2, 0.2, 0.7],
-          "meshFile": "models/paladin/idle_paladin.dae",
+          "meshFile": "models/paladin/paladin_idle.dae",
           "diffuse": [0.23, 0.33, 0.99],
           "specular": [1, 1, 1],
           "shininess": 30.0
