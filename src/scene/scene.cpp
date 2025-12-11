@@ -96,6 +96,13 @@ Scene::Scene(const RenderData& metaData,
             m_animMap.at(meshfile)
         );
     }
+
+    loadProjectileTemplate(FruitType::APPLE);
+    loadProjectileTemplate(FruitType::TOMATO);
+    loadProjectileTemplate(FruitType::CABBAGE);
+    loadProjectileTemplate(FruitType::CARROT);
+    loadProjectileTemplate(FruitType::ONION);
+    loadProjectileTemplate(FruitType::SWEET_POTATO);
 }
 
 bool Scene::draw(GLuint shader) {
@@ -138,6 +145,7 @@ bool Scene::draw(GLuint shader) {
 
         passShapeVars(shader, shape);
 
+
         // Fetch animation if present
         if (m_animMap.contains(shape.primitive.meshfile)) {
             passBoneVars(shader, m_animMap.at(shape.primitive.meshfile));
@@ -149,6 +157,33 @@ bool Scene::draw(GLuint shader) {
         }
 
         getGeom(shape).draw();
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    // draw projectiles
+    for (const auto& proj : m_projectiles) {
+        const RenderShapeData& renderData = proj.getRenderData();
+
+        // textures
+        if (renderData.primitive.material.textureMap.isUsed) {
+            const Texture& texture = m_texMap.at(renderData.primitive.material.textureMap.filename);
+            glActiveTexture(GL_TEXTURE0 + texture.getSlot());
+            glBindTexture(GL_TEXTURE_2D, texture.getId());
+            passTextureVars(shader, texture);
+        }
+
+        if (renderData.primitive.material.bumpMap.isUsed && m_normalMapToggled) {
+            const Texture& texture = m_texMap.at(renderData.primitive.material.bumpMap.filename);
+            glActiveTexture(GL_TEXTURE0 + texture.getSlot());
+            glBindTexture(GL_TEXTURE_2D, texture.getId());
+            passTextureVars(shader, texture);
+        }
+
+        passShapeVars(shader, renderData);
+        passPhysVars(shader, proj.getRigidBody());
+
+        getGeom(renderData).draw();
 
         glBindTexture(GL_TEXTURE_2D, 0);
     }
@@ -221,9 +256,115 @@ void Scene::toggleNormalMap() {
     m_normalMapToggled = !m_normalMapToggled;
 }
 
+void Scene::loadProjectileTemplate(FruitType type) {
+    std::string meshfile = Projectile::getMeshFileForType(type);
+
+    // Skip if already loaded
+    if (m_projectileTemplates.contains(meshfile)) return;
+
+    // Find the template shape - try exact match first, then substring match
+    for (const auto& shape : m_shapes) {
+        if (shape.primitive.meshfile == meshfile) {
+            m_projectileTemplates[meshfile] = shape;
+            return;
+        }
+    }
+    
+    // Try substring match (in case paths differ slightly)
+    std::string baseName = meshfile.substr(meshfile.find_last_of("/") + 1);
+    baseName = baseName.substr(0, baseName.find("."));  // Remove extension
+    
+    for (const auto& shape : m_shapes) {
+        if (shape.primitive.meshfile.find(baseName) != std::string::npos) {
+            m_projectileTemplates[meshfile] = shape;
+            std::cout << "Loaded projectile template: " << meshfile << " from " << shape.primitive.meshfile << std::endl;
+            return;
+        }
+    }
+
+    std::cerr << "Warning: Projectile template not found for " << meshfile << std::endl;
+}
+
+void Scene::throwProjectile(const glm::vec3& spawnPos, const glm::vec3& velocity) {
+    // Pick a random fruit type
+    FruitType type = static_cast<FruitType>(rand() % 6);
+
+    std::string meshfile = Projectile::getMeshFileForType(type);
+
+    if (!m_projectileTemplates.contains(meshfile)) {
+        std::cerr << "No template for projectile type: " << meshfile << std::endl;
+        std::cerr << "Available templates: ";
+        for (const auto& [key, _] : m_projectileTemplates) {
+            std::cerr << key << " ";
+        }
+        std::cerr << std::endl;
+        return;
+    }
+
+    // Create projectile using template
+    m_projectiles.emplace_back(type, spawnPos, velocity, m_projectileTemplates.at(meshfile));
+    std::cout << "Threw projectile! Total projectiles: " << m_projectiles.size() << std::endl;
+}
+
+void Scene::updateProjectiles(float dt) {
+    // Update each projectile's physics
+    for (auto& proj : m_projectiles) {
+        // Clear forces
+        proj.getRigidBody().clearForces();
+
+        // Apply gravity (similar to sphere bouncing)
+        if (m_gravityEnabled) {
+            proj.getRigidBody().applyForce();
+        }
+
+        // Integrate physics
+        proj.getRigidBody().integrate(dt);
+
+        // Update render data from physics
+        proj.updateRenderData();
+
+        // Check collision with ground (bounce like sphere)
+        proj.getRigidBody().bounceSphere(0.0f);  // Ground at y=0
+
+        // Check collision with animated characters
+        if (m_collisionEnabled) {
+            const std::string& paladin = findMeshfile("paladin");
+
+            for (const auto& [cid, affectee] : m_collMap) {
+                const std::string& meshfile = m_shapes.at(cid).primitive.meshfile;
+
+                // If collision obj is animated (like paladin)
+                if (!meshfile.empty() && m_animMap.contains(meshfile)) {
+                    // Check collision against model AABB
+                    if (proj.getCollision().detect(m_modelMap.at(meshfile).getBox())) {
+                        std::cout << "Projectile hit character!" << std::endl;
+
+                        // Trigger hit animation
+                        if (m_automaton && paladin == meshfile) {
+                            m_automaton->onHit();
+                        }
+
+                        // Mark projectile as hit
+                        proj.markHit();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // Remove projectiles that should be deleted
+    m_projectiles.erase(
+        std::remove_if(m_projectiles.begin(), m_projectiles.end(),
+                       [](const Projectile& p) { return p.shouldRemove(); }),
+        m_projectiles.end()
+        );
+}
+
 void Scene::updatePhys(float dt) {
     if (!m_gravityEnabled && !m_torqueEnabled && !m_collisionEnabled) {
         for (auto& [_, rb] : m_physMap) rb.reset();
+        updateProjectiles(dt);
         return;
     }
 
@@ -249,6 +390,9 @@ void Scene::updatePhys(float dt) {
     }
 
     for (auto& [_, rb] : m_physMap) rb.integrate(dt);
+
+    // Update projectiles (always call this, not just when physics disabled)
+    updateProjectiles(dt);
 
     // collision
     if (m_collisionEnabled) {

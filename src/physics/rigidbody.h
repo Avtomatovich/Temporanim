@@ -8,6 +8,7 @@
 
 class RigidBody {
 public:
+    RigidBody() = default;
     RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initCtm, const Box& box);
 
     void reset();
@@ -21,6 +22,19 @@ public:
     void integrate(float dt);
 
     void bounceSphere(float groundY);
+
+    void setVelocity(const glm::vec3& velocity) {
+        v = velocity;
+        P_t = mass * v;  // Update momentum to match
+    }
+
+    glm::vec3 getPosition() const {
+        return x_t;
+    }
+
+    glm::vec3 getVelocity() const {
+        return v;
+    }
 
 private:
     glm::vec3 x_t{0.f};                   // position x(t) - center of mass

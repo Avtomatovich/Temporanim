@@ -11,6 +11,7 @@
 #include "physics/rigidbody.h"
 #include "texture/texture.h"
 #include "utils/sceneparser.h"
+#include "physics/projectile.h"
 
 class Scene
 {
@@ -50,6 +51,8 @@ public:
     inline void enableGravity(bool toggle) { m_gravityEnabled = toggle; }
     inline void enableRotation(bool toggle) { m_torqueEnabled = toggle; }
     inline void enableCollisions(bool toggle) { m_collisionEnabled = toggle; }
+    void throwProjectile(const glm::vec3& spawnPos, const glm::vec3& velocity);
+    void updateProjectiles(float dt);
 
 private:
     SceneGlobalData m_global;
@@ -63,6 +66,11 @@ private:
     std::unordered_map<std::string, Animator> m_animMap;
     std::unordered_map<int, RigidBody> m_physMap;
     std::unordered_map<int, Collision> m_collMap;
+
+    std::vector<Projectile> m_projectiles;
+    std::unordered_map<std::string, RenderShapeData> m_projectileTemplates;
+
+    void loadProjectileTemplate(FruitType type);
 
     bool m_normalMapToggled = true;
 
