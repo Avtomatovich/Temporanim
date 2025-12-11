@@ -6,20 +6,22 @@
 
 ## Samson
 
-- [ ] add collision logic
+- [ ] add support for embedded textures
+- [x] add collision logic
   - [x] enclose meshes in AABBs for collisions
   - [x] sphere-sphere
   - [x] box-box
   - [x] cube-box (for floors and walls)
   - [x] add rigid body logic to meshes
   - [x] collision loop
-  - [ ] update character AABBs for animated models
+  - [x] update character AABBs for animated models
 - [ ] add logic for character hit animation
+  - [x] create animation state machine for model
   - [ ] gather assets + animations
     - [x] find and add better brick texture with normal mapping
-    - [ ] fetch knight model from mixamo with pre-baked shield
-    - [ ] combine idle + hit animation with model
-    - [ ] export from Blender
+    - [x] fetch knight model from mixamo with pre-baked shield
+    - [x] fetch idle + hit animations
+    - [ ] combine animations + export from Blender
 - [x] find, add, test fruit/veg models (_mesh_)
   - [x] sweet potato
   - [x] cabbage
@@ -30,8 +32,8 @@
 ## Carlos
 
 - [x] compute mass using constant density factor and computed volume
-- [ ] add projectile logic
-  - [ ] add spawn logic (randomized)
-  - [ ] add despawn logic (when new projectile is thrown)
-  - [ ] add throwing logic
-- [ ] maybe skybox?
+- [x] add projectile logic
+  - [x] add spawn logic (randomized)
+  - [x] add despawn logic (when new projectile is thrown)
+  - [x] add throwing logic
+- [ ] test projectile logic

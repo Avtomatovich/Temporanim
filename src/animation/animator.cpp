@@ -24,12 +24,24 @@ const bool Animator::hasAnim() const {
     return !m_anims.empty();
 }
 
+const bool Animator::atEnd() const {
+    return m_atEnd;
+}
+
 void Animator::update(float deltaTime) {
-    // Do not update if no animation or not playing
-    if (!m_anim || !m_isPlaying) return;
+    // Do not update if no animation/not playing/not looping and at end
+    if (!m_anim || !m_isPlaying || (!m_isLooping && m_atEnd)) return;
 
     // Update number of ticks
     m_ticks += deltaTime * m_anim->ticksPerSec;
+
+    // If not looping and ticks exceeds duration, mark end and return
+    if (!m_isLooping && m_ticks >= m_anim->duration) {
+        m_ticks = m_anim->duration;
+        computeSkinMats(m_ticks);
+        m_atEnd = true;
+        return;
+    }
 
     // Clamp number of ticks
     m_ticks = fmod(m_ticks, m_anim->duration);
@@ -44,9 +56,12 @@ void Animator::reset() {
 
     // Set to play
     m_isPlaying = true;
+
+    // Reset end marking bool
+    m_atEnd = false;
 }
 
-void Animator::swap(bool toNext) {
+void Animator::swap(bool toNext, bool isLooping) {
     // Return if empty
     if (m_anims.empty()) return;
 
@@ -65,7 +80,35 @@ void Animator::swap(bool toNext) {
     // Fetch animation
     m_anim = std::make_unique<Animation>(*m_animIter);
 
+    // set looping bool
+    m_isLooping = isLooping;
+
     reset();
+}
+
+bool Animator::swap(std::string name, bool isLooping) {
+    std::string query, animName;
+    for (const char& c : name) query += std::tolower(c);
+
+    for (const Animation& anim : m_anims) {
+        for (const char& c : anim.name) animName += std::tolower(c);
+
+        // if matched
+        if (animName.find(query) != std::string::npos) {
+            // set to current anim
+            m_anim = std::make_unique<Animation>(anim);
+            // assign looping bool
+            m_isLooping = isLooping;
+            // reset anim
+            reset();
+            // return true
+            return true;
+        }
+
+        animName.clear();
+    }
+
+    return false;
 }
 
 void Animator::computeSkinMats(float now) {

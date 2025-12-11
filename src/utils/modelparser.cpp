@@ -27,6 +27,7 @@ namespace ModelParser {
             aiAnimation* src = scene->mAnimations[i];
             // Init animation struct
             Animation anim{
+                src->mName.C_Str(),
                 static_cast<float>(src->mDuration),
                 static_cast<float>(src->mTicksPerSecond)
             };

@@ -201,6 +201,21 @@ void Realtime::mousePressEvent(QMouseEvent *event) {
 void Realtime::mouseReleaseEvent(QMouseEvent *event) {
     if (!event->buttons().testFlag(Qt::LeftButton)) {
         m_mouseDown = false;
+
+        //  projectile throwing when mouse is released
+        if (m_scene.has_value() && m_metaData.has_value()) {
+            glm::vec3 camPos = m_metaData->cameraData.pos;
+            glm::vec3 camLook = glm::normalize(m_metaData->cameraData.look);
+
+            // throw
+            float speed = 15.0f;
+            glm::vec3 up = glm::vec3(0, 1, 0);
+            glm::vec3 throwDir = glm::normalize(camLook + up * 0.3f);
+            glm::vec3 velocity = throwDir * speed;
+            glm::vec3 spawnPos = camPos + camLook * 0.5f;
+
+            m_scene->throwProjectile(spawnPos, velocity);
+        }
     }
 }
 

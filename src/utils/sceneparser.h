@@ -64,6 +64,7 @@ struct BoneAnim {
 
 // Struct which contains data for a single animation sequence
 struct Animation {
+    std::string name;
     float duration, ticksPerSec;
     std::vector<BoneAnim> boneAnims;
 };
