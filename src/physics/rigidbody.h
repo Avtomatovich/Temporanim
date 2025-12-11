@@ -28,6 +28,10 @@ public:
         P_t = mass * v;  // Update momentum to match
     }
 
+    void setAngularMomentum(const glm::vec3& angularMomentum) {
+        L_t = angularMomentum;
+    }
+
     glm::vec3 getPosition() const {
         return x_t;
     }

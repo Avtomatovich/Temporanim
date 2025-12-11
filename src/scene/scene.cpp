@@ -262,7 +262,7 @@ void Scene::loadProjectileTemplate(FruitType type) {
     // Skip if already loaded
     if (m_projectileTemplates.contains(meshfile)) return;
 
-    // Find the template shape - try exact match first, then substring match
+    // Find the template shape - try exact match first
     for (const auto& shape : m_shapes) {
         if (shape.primitive.meshfile == meshfile) {
             m_projectileTemplates[meshfile] = shape;
@@ -270,15 +270,24 @@ void Scene::loadProjectileTemplate(FruitType type) {
         }
     }
     
-    // Try substring match (in case paths differ slightly)
-    std::string baseName = meshfile.substr(meshfile.find_last_of("/") + 1);
-    baseName = baseName.substr(0, baseName.find("."));  // Remove extension
-    
-    for (const auto& shape : m_shapes) {
-        if (shape.primitive.meshfile.find(baseName) != std::string::npos) {
-            m_projectileTemplates[meshfile] = shape;
-            std::cout << "Loaded projectile template: " << meshfile << " from " << shape.primitive.meshfile << std::endl;
-            return;
+    // Extract fruit directory name (e.g., "apple" from "models/apple/scene.gltf")
+    // Find the directory name before the filename
+    size_t lastSlash = meshfile.find_last_of("/");
+    if (lastSlash != std::string::npos) {
+        size_t secondLastSlash = meshfile.find_last_of("/", lastSlash - 1);
+        std::string fruitDir = meshfile.substr(secondLastSlash + 1, lastSlash - secondLastSlash - 1);
+        // fruitDir should be "apple", "potato", "cabbage", etc.
+        
+        // Only match dynamic meshes that contain this fruit directory name
+        for (const auto& shape : m_shapes) {
+            if (shape.primitive.type == PrimitiveType::PRIMITIVE_MESH && 
+                shape.primitive.isDynamic &&
+                shape.primitive.meshfile.find(fruitDir) != std::string::npos) {
+                m_projectileTemplates[meshfile] = shape;
+                std::cout << "Loaded projectile template: " << meshfile 
+                          << " from " << shape.primitive.meshfile << std::endl;
+                return;
+            }
         }
     }
 
@@ -286,10 +295,14 @@ void Scene::loadProjectileTemplate(FruitType type) {
 }
 
 void Scene::throwProjectile(const glm::vec3& spawnPos, const glm::vec3& velocity) {
-    // Pick a random fruit type
-    FruitType type = static_cast<FruitType>(rand() % 6);
-
+    // Pick a random fruit type - use enum count instead of hardcoded 6
+    int numTypes = 6;  // TOMATO, CABBAGE, CARROT, APPLE, ONION, SWEET_POTATO
+    FruitType type = static_cast<FruitType>(rand() % numTypes);
+    
+    std::cout << "Selected fruit type: " << static_cast<int>(type) << std::endl;
+    
     std::string meshfile = Projectile::getMeshFileForType(type);
+    std::cout << "Meshfile: " << meshfile << std::endl;
 
     if (!m_projectileTemplates.contains(meshfile)) {
         std::cerr << "No template for projectile type: " << meshfile << std::endl;
@@ -303,6 +316,25 @@ void Scene::throwProjectile(const glm::vec3& spawnPos, const glm::vec3& velocity
 
     // Create projectile using template
     m_projectiles.emplace_back(type, spawnPos, velocity, m_projectileTemplates.at(meshfile));
+    
+    //  initial spin  (rotation)
+    if (m_torqueEnabled) {
+        glm::vec3 throwDir = glm::normalize(velocity);
+        
+        // random axis for dramatic effect
+        glm::vec3 randomAxis = glm::normalize(glm::vec3(
+            (rand() % 200 - 100) / 100.0f,
+            (rand() % 200 - 100) / 100.0f,
+            (rand() % 200 - 100) / 100.0f
+        ));
+        // perpendicular to throw direction
+        glm::vec3 spinAxis = glm::normalize(randomAxis - glm::dot(randomAxis, throwDir) * throwDir);
+        
+        float spinSpeed = glm::length(velocity) * 4.0f * (0.7f + (rand() % 60) / 100.0f);
+        spinSpeed = glm::clamp(spinSpeed, 8.0f, 30.0f);
+        
+        m_projectiles.back().getRigidBody().setAngularMomentum(spinAxis * spinSpeed * 0.3f);
+    }
     std::cout << "Threw projectile! Total projectiles: " << m_projectiles.size() << std::endl;
 }
 
@@ -312,39 +344,33 @@ void Scene::updateProjectiles(float dt) {
         // Clear forces
         proj.getRigidBody().clearForces();
 
-        // Apply gravity (similar to sphere bouncing)
+        // gravity (similar to sphere bouncing)
         if (m_gravityEnabled) {
             proj.getRigidBody().applyForce();
         }
 
-        // Integrate physics
+        // physics
         proj.getRigidBody().integrate(dt);
 
-        // Update render data from physics
         proj.updateRenderData();
 
-        // Check collision with ground (bounce like sphere)
+        // check collision with ground (bounce like sphere)..?
         proj.getRigidBody().bounceSphere(0.0f);  // Ground at y=0
 
-        // Check collision with animated characters
         if (m_collisionEnabled) {
             const std::string& paladin = findMeshfile("paladin");
 
             for (const auto& [cid, affectee] : m_collMap) {
                 const std::string& meshfile = m_shapes.at(cid).primitive.meshfile;
 
-                // If collision obj is animated (like paladin)
                 if (!meshfile.empty() && m_animMap.contains(meshfile)) {
-                    // Check collision against model AABB
                     if (proj.getCollision().detect(m_modelMap.at(meshfile).getBox())) {
                         std::cout << "Projectile hit character!" << std::endl;
 
-                        // Trigger hit animation
                         if (m_automaton && paladin == meshfile) {
                             m_automaton->onHit();
                         }
 
-                        // Mark projectile as hit
                         proj.markHit();
                         break;
                     }

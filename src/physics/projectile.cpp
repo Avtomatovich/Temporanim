@@ -37,7 +37,7 @@ Projectile::Projectile(FruitType type,
 
     // Transform at spawn position with scale
     glm::mat4 ctm = glm::translate(glm::mat4(1.0f), startPos);
-    ctm = glm::scale(ctm, glm::vec3(0.3f));
+    ctm = glm::scale(ctm, glm::vec3(2.5f));  // Match scene fruit scale
 
     // Create rigid body with object-space box
     m_rigidBody = RigidBody(PrimitiveType::PRIMITIVE_MESH, mass, ctm, objSpaceBox);
@@ -53,6 +53,7 @@ void Projectile::updateRenderData() {
     glm::mat4 ctm = m_rigidBody.getCtm();
     m_renderData.ctm = ctm;
     m_collision.updateBox(ctm);
+    
 }
 
 bool Projectile::shouldRemove() const {
@@ -63,7 +64,7 @@ bool Projectile::shouldRemove() const {
 }
 
 bool Projectile::isOffScreen() const {
-    // Remove if fallen way below ground
+    // remove if fallen way below ground
     return m_rigidBody.getPosition().y < -50.0f;
 }
 

@@ -35,6 +35,8 @@ Realtime::Realtime(QWidget *parent)
 
     // Normal map button
     m_keyMap[Qt::Key_N]       = false;
+
+    // Device Correction Variables
 }
 
 void Realtime::finish() {
@@ -185,6 +187,24 @@ void Realtime::toggleFeatures() {
 
 void Realtime::keyPressEvent(QKeyEvent *event) {
     m_keyMap[Qt::Key(event->key())] = true;
+    
+    // Throw projectile on Q key press
+    if (event->key() == Qt::Key_Q) {
+        if (m_scene.has_value() && m_metaData.has_value()) {
+            glm::vec3 camPos = m_metaData->cameraData.pos;
+            glm::vec3 camLook = glm::normalize(m_metaData->cameraData.look);
+
+            // throw
+            float speed = 10.0f;
+            glm::vec3 up = glm::vec3(0, 1, 0);
+            float upAngle = 0.2f + (rand() % 20) / 100.0f;  // 0.2 to 0.4
+            glm::vec3 throwDir = glm::normalize(camLook + up * upAngle);
+            glm::vec3 velocity = throwDir * speed;
+            glm::vec3 spawnPos = camPos + camLook * 0.5f;
+
+            m_scene->throwProjectile(spawnPos, velocity);
+        }
+    }
 }
 
 void Realtime::keyReleaseEvent(QKeyEvent *event) {
@@ -201,21 +221,6 @@ void Realtime::mousePressEvent(QMouseEvent *event) {
 void Realtime::mouseReleaseEvent(QMouseEvent *event) {
     if (!event->buttons().testFlag(Qt::LeftButton)) {
         m_mouseDown = false;
-
-        //  projectile throwing when mouse is released
-        if (m_scene.has_value() && m_metaData.has_value()) {
-            glm::vec3 camPos = m_metaData->cameraData.pos;
-            glm::vec3 camLook = glm::normalize(m_metaData->cameraData.look);
-
-            // throw
-            float speed = 15.0f;
-            glm::vec3 up = glm::vec3(0, 1, 0);
-            glm::vec3 throwDir = glm::normalize(camLook + up * 0.3f);
-            glm::vec3 velocity = throwDir * speed;
-            glm::vec3 spawnPos = camPos + camLook * 0.5f;
-
-            m_scene->throwProjectile(spawnPos, velocity);
-        }
     }
 }
 
