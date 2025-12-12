@@ -14,7 +14,7 @@ struct Settings {
     bool enableGravity = false;
     bool enableRotation = false;
     bool enableCollisions = false;
-    bool extraCredit4 = false;
+    bool enableProjectiles = false;
 };
 
 

@@ -157,6 +157,7 @@ void Realtime::settingsChanged() {
     m_scene->enableGravity(settings.enableGravity);
     m_scene->enableRotation(settings.enableRotation);
     m_scene->enableCollisions(settings.enableCollisions);
+    m_scene->enableProjectiles(settings.enableProjectiles);
 
     update(); // asks for a PaintGL() call to occur
 }

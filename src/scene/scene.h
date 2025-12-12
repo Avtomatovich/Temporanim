@@ -49,6 +49,7 @@ public:
     inline void enableGravity(bool toggle) { m_gravityEnabled = toggle; }
     inline void enableRotation(bool toggle) { m_torqueEnabled = toggle; }
     inline void enableCollisions(bool toggle) { m_collisionsEnabled = toggle; }
+    inline void enableProjectiles(bool toggle) { m_projectilesEnabled = toggle; }
 
 private:
     SceneGlobalData m_global;
@@ -67,13 +68,14 @@ private:
     const Geometry& getGeom(const RenderShapeData& shape);
     int getGeomKey(const RenderShapeData& shape);
 
-    std::string findMeshfile(const std::string& query);
+    // std::string findMeshfile(const std::string& query);
 
     bool m_normalMapToggled = true;
 
     bool m_gravityEnabled = false;
     bool m_torqueEnabled = false;
     bool m_collisionsEnabled = false;
+    bool m_projectilesEnabled = false;
 };
 
 #endif // SCENE_H

@@ -74,7 +74,7 @@ private slots:
     void onEnableGravity();
     void onEnableRotation();
     void onEnableCollisions();
-    void onExtraCredit4();
+    void onEnableProjectiles();
 
     // Reset extra credit checkboxes
     void onSceneLoaded();

@@ -86,19 +86,19 @@ Scene::Scene(const RenderData& metaData,
         }
     }
 
-    std::string meshfile = findMeshfile("paladin");
-    if (meshfile.empty()) {
-        std::cerr << "Missing paladin model" << std::endl;
-    } else {
-        // for each shape
-        for (int i = 0; i < m_shapes.size(); ++i) {
-            // if mesh is part of model
-            if (meshfile == m_shapes[i].primitive.meshfile) {
-                // fetch and scale down mesh AABB
-                m_collMap.at(i).scaleBox(0.8f);
-            }
-        }        
-    }
+    // std::string meshfile = findMeshfile("paladin");
+    // if (meshfile.empty()) {
+    //     std::cerr << "Missing paladin model" << std::endl;
+    // } else {
+    //     // for each shape
+    //     for (int i = 0; i < m_shapes.size(); ++i) {
+    //         // if mesh is part of model
+    //         if (meshfile == m_shapes[i].primitive.meshfile) {
+    //             // fetch and scale down mesh AABB
+    //             m_collMap.at(i).scaleBox(0.8f);
+    //         }
+    //     }
+    // }
 }
 
 bool Scene::draw(GLuint shader) {
@@ -269,7 +269,7 @@ void Scene::updatePhys(float dt) {
                 if (affector.detect(affectee)) {
                     std::cout << "collision detected" << std::endl;
 
-                    // TODO: determine reaction forces
+                    // determine reaction forces
                     rb.handleForces();
 
                     // determine affectee's reaction forces if affectee is dynamic
@@ -280,25 +280,25 @@ void Scene::updatePhys(float dt) {
     }
 }
 
-std::string Scene::findMeshfile(const std::string& query) {
-    std::string filename, meshfile;
-    // convert query to lowercase
-    for (const char& c : query) filename += std::tolower(c);
+// std::string Scene::findMeshfile(const std::string& query) {
+//     std::string filename, meshfile;
+//     // convert query to lowercase
+//     for (const char& c : query) filename += std::tolower(c);
 
-    for (const RenderShapeData& shape: m_shapes) {
-        // convert meshfile to lowercase
-        for (const char& c : shape.primitive.meshfile) {
-            meshfile += std::tolower(c);
-        }
+//     for (const RenderShapeData& shape: m_shapes) {
+//         // convert meshfile to lowercase
+//         for (const char& c : shape.primitive.meshfile) {
+//             meshfile += std::tolower(c);
+//         }
 
-        // compare
-        if (meshfile.find(filename) != std::string::npos) {
-            return shape.primitive.meshfile;
-        }
+//         // compare
+//         if (meshfile.find(filename) != std::string::npos) {
+//             return shape.primitive.meshfile;
+//         }
 
-        // clear lowercase meshfile string for next iteration
-        meshfile.clear();
-    }
+//         // clear lowercase meshfile string for next iteration
+//         meshfile.clear();
+//     }
 
-    return "";
-}
+//     return "";
+// }

@@ -95,16 +95,6 @@ bool Collision::detect(const Collision& that) const {
     return false;
 }
 
-bool Collision::boxBox(const Box& b0, const Box& b1) const {
-    for (int i = 0; i < 3; ++i) {
-        if (b0.max[i] < b1.min[i] || b1.max[i] < b0.min[i]) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 bool Collision::cubeBox(const Collision& cube, const Box& box) const {
     // NOTE: assume cube is axis-aligned
     Box cubeBox;
@@ -115,4 +105,14 @@ bool Collision::cubeBox(const Collision& cube, const Box& box) const {
     }
 
     return boxBox(cubeBox, box);
+}
+
+bool Collision::boxBox(const Box& b0, const Box& b1) const {
+    for (int i = 0; i < 3; ++i) {
+        if (b0.max[i] < b1.min[i] || b1.max[i] < b0.min[i]) {
+            return false;
+        }
+    }
+
+    return true;
 }

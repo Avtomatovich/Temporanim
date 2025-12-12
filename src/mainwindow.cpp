@@ -160,7 +160,7 @@ void MainWindow::initialize() {
     ec3->setChecked(false);
 
     ec4 = new QCheckBox();
-    ec4->setText(QStringLiteral("Extra Credit 4"));
+    ec4->setText(QStringLiteral("Enable Projectiles"));
     ec4->setChecked(false);
 
     vLayout->addWidget(uploadFile);
@@ -262,7 +262,7 @@ void MainWindow::connectExtraCredit() {
     connect(ec1, &QCheckBox::clicked, this, &MainWindow::onEnableGravity);
     connect(ec2, &QCheckBox::clicked, this, &MainWindow::onEnableRotation);
     connect(ec3, &QCheckBox::clicked, this, &MainWindow::onEnableCollisions);
-    connect(ec4, &QCheckBox::clicked, this, &MainWindow::onExtraCredit4);
+    connect(ec4, &QCheckBox::clicked, this, &MainWindow::onEnableProjectiles);
 
     // connect scene loaded signal to slot for checkbox resets
     connect(realtime, &Realtime::sceneLoaded, this, &MainWindow::onSceneLoaded);
@@ -374,8 +374,8 @@ void MainWindow::onEnableCollisions() {
     realtime->settingsChanged();
 }
 
-void MainWindow::onExtraCredit4() {
-    settings.extraCredit4 = !settings.extraCredit4;
+void MainWindow::onEnableProjectiles() {
+    settings.enableProjectiles = !settings.enableProjectiles;
     realtime->settingsChanged();
 }
 
@@ -389,7 +389,7 @@ void MainWindow::onSceneLoaded() {
     settings.enableGravity = false;
     settings.enableRotation = false;
     settings.enableCollisions = false;
-    settings.extraCredit4 = false;
+    settings.enableProjectiles = false;
 
     realtime->settingsChanged();
 }
