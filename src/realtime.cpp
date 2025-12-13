@@ -35,6 +35,9 @@ Realtime::Realtime(QWidget *parent)
 
     // Normal map button
     m_keyMap[Qt::Key_N]       = false;
+
+    // Throwing button
+    m_keyMap[Qt::Key_F]       = false;
 }
 
 void Realtime::finish() {
@@ -72,10 +75,19 @@ void Realtime::initializeGL() {
     // Tells OpenGL how big the screen is
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
 
+    // Load shader program ID
     m_shader = ShaderLoader::createShaderProgram(
                     "./resources/shaders/default.vert",
                     "./resources/shaders/default.frag"
                 );
+
+    // Parse projectiles
+    try {
+        parseProjectiles();
+    } catch (std::exception& e) {
+        std::cerr << "Exception: " << e.what() << std::endl;
+        finish();
+    }
 }
 
 void Realtime::paintGL() {
@@ -136,6 +148,8 @@ void Realtime::sceneChanged() {
                     settings.shapeParameter1,
                     settings.shapeParameter2);
 
+    if (m_projectiles.has_value()) m_scene->loadProjectiles(m_projectiles.value());
+
     glErrorCheck();
 
     // Send signal to UI to reset checkboxes
@@ -163,6 +177,42 @@ void Realtime::settingsChanged() {
 }
 
 // ================== Auxiliary Functions!
+
+void Realtime::parseProjectiles() {
+    // Get abs path of projectile file
+    QString filePath = QDir::currentPath()
+                                 .append(QDir::separator())
+                                 .append("scenefiles")
+                                 .append(QDir::separator())
+                                 .append("scenes")
+                                 .append(QDir::separator())
+                                 .append("projectiles.json");
+
+    if (filePath.isNull()) {
+        std::cout << "Failed to load projectile data file." << std::endl;
+        return;
+    }
+
+    std::string projectilePath = filePath.toStdString();
+
+    std::cout << "Loaded projectile data file: \"" << projectilePath << "\"." << std::endl;
+
+    // Init projectile data
+    RenderData projectileData;
+
+    // Parse render data
+    bool success = SceneParser::parse(projectilePath, projectileData);
+
+    // Exit if parsing fails
+    if (!success) {
+        std::cerr << "Error loading projectile data: \"" << projectilePath << "\"" << std::endl;
+        finish();
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Create projectiles
+    m_projectiles = projectileData;
+}
 
 void Realtime::toggleFeatures() {
     // Play/pause animation
@@ -255,7 +305,7 @@ void Realtime::timerEvent(QTimerEvent *event) {
     glm::vec4 left = glm::normalize(glm::vec4{glm::cross(glm::vec3{up}, glm::vec3{look}), 0.f});
     glm::vec4 y {0.f, 1.f, 0.f, 0.f};
 
-    float m = 5.f * deltaTime; // scale with m = (m/s) * s
+    float m = 4.f * deltaTime; // scale with m = (m/s) * s
 
     if (m_keyMap[Qt::Key_W]) pos += look * m; // forward
     if (m_keyMap[Qt::Key_S]) pos -= look * m; // backward

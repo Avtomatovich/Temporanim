@@ -280,6 +280,14 @@ void Scene::updatePhys(float dt) {
     }
 }
 
+void Scene::loadProjectiles(const Projectile& projectiles) {
+    m_projectiles = std::make_unique<Projectile>(projectiles);
+}
+
+void Scene::spawn() {
+
+}
+
 // std::string Scene::findMeshfile(const std::string& query) {
 //     std::string filename, meshfile;
 //     // convert query to lowercase

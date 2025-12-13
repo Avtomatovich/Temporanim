@@ -12,6 +12,8 @@ public:
 
     void reset();
 
+    void reset(const glm::mat4& initCtm);
+
     glm::mat4 getCtm() const;
 
     void clearForces();

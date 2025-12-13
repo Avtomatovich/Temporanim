@@ -7,6 +7,7 @@
 #include "geometry/model.h"
 #include "geometry/geometry.h"
 #include "physics/collision.h"
+#include "physics/projectile.h"
 #include "physics/rigidbody.h"
 #include "texture/texture.h"
 #include "utils/sceneparser.h"
@@ -14,7 +15,7 @@
 class Scene
 {
 public:
-    Scene();
+    Scene() {}
 
     Scene(const RenderData& metaData,
           float aspectRatio,
@@ -51,6 +52,11 @@ public:
     inline void enableCollisions(bool toggle) { m_collisionsEnabled = toggle; }
     inline void enableProjectiles(bool toggle) { m_projectilesEnabled = toggle; }
 
+    // projectile funcs
+    void loadProjectiles(const Projectile& projectiles);
+
+    void spawn();
+
 private:
     SceneGlobalData m_global;
     Camera m_cam;
@@ -64,11 +70,11 @@ private:
     std::unordered_map<int, RigidBody> m_physMap;
     std::unordered_map<int, Collision> m_collMap;
 
+    std::unique_ptr<Projectile> m_projectiles;
+
     void addPrim(const RenderShapeData& shape, int param1, int param2);
     const Geometry& getGeom(const RenderShapeData& shape);
     int getGeomKey(const RenderShapeData& shape);
-
-    // std::string findMeshfile(const std::string& query);
 
     bool m_normalMapToggled = true;
 
@@ -76,6 +82,8 @@ private:
     bool m_torqueEnabled = false;
     bool m_collisionsEnabled = false;
     bool m_projectilesEnabled = false;
+
+    // std::string findMeshfile(const std::string& query);
 };
 
 #endif // SCENE_H

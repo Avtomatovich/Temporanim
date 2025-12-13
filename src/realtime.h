@@ -41,6 +41,8 @@ private:
     void mouseMoveEvent(QMouseEvent *event) override;
     void timerEvent(QTimerEvent *event) override;
 
+    void parseProjectiles();
+
     void toggleFeatures();
 
     // Tick Related Variables
@@ -53,6 +55,7 @@ private:
     std::unordered_map<Qt::Key, bool> m_keyMap;         // Stores whether keys are pressed or not
     bool m_pToggled = false;                            // Stores state of P key
     bool m_nToggled = false;                            // Stores state of N key
+    bool m_fToggled = false;                            // Stores state of F key
 
     // Device Correction Variables
     double m_devicePixelRatio;
@@ -63,4 +66,7 @@ private:
 
     // Shader Program ID
     GLuint m_shader;
+
+    // Projectile Data
+    std::optional<Projectile> m_projectiles;
 };

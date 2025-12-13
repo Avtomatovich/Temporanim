@@ -59,6 +59,11 @@ void RigidBody::reset() {
     computeAuxiliaryVariables();
 }
 
+void RigidBody::reset(const glm::mat4& initCtm) {
+    ctm = initCtm;
+    reset();
+}
+
 glm::mat4 RigidBody::getCtm() const {
     // Translation * Rotation * Scale
     glm::mat4 T = glm::translate(glm::mat4{1.f}, x_t);

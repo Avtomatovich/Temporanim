@@ -1,0 +1,97 @@
+{
+  "name": "projectiles",
+  "globalData": {
+    "ambientCoeff": 1,
+    "diffuseCoeff": 1,
+    "specularCoeff": 1,
+    "transparentCoeff": 0
+  },
+  "cameraData": {
+    "position": [0, 1, 5],
+    "up": [0, 1, 0],
+    "heightAngle": 45,
+    "look": [0, 0, -1]
+  },
+  "groups": [
+    {
+      "name": "Sweet Potato",
+      "translate": [0, 0, 6],
+      "scale": [2.5, 2.5, 2.5],
+      "primitives": [
+        {
+          "type": "mesh",
+          "ambient": [0.4, 0.4, 0.4],
+          "meshFile": "models/potato/scene.gltf",
+          "diffuse": [0.5, 0.5, 0.5],
+          "specular": [1.0, 1.0, 1.0],
+          "shininess": 30.0,
+          "dynamic": true
+        }
+      ]
+    },
+    {
+      "name": "Cabbage",
+      "translate": [0, 0, 6],
+      "scale": [2.5, 2.5, 2.5],
+      "primitives": [
+        {
+          "type": "mesh",
+          "ambient": [0.4, 0.4, 0.4],
+          "meshFile": "models/cabbage/scene.gltf",
+          "diffuse": [0.5, 0.5, 0.5],
+          "specular": [1.0, 1.0, 1.0],
+          "shininess": 30.0,
+          "dynamic": true
+        }
+      ]
+    },
+    {
+      "name": "Carrot",
+      "translate": [0, 0, 6],
+      "scale": [2.5, 2.5, 2.5],
+      "primitives": [
+        {
+          "type": "mesh",
+          "ambient": [0.4, 0.4, 0.4],
+          "meshFile": "models/carrot/scene.gltf",
+          "diffuse": [0.5, 0.5, 0.5],
+          "specular": [1.0, 1.0, 1.0],
+          "shininess": 30.0,
+          "dynamic": true
+        }
+      ]
+    },
+    {
+      "name": "Apple",
+      "translate": [0, 0, 6],
+      "scale": [2.5, 2.5, 2.5],
+      "primitives": [
+        {
+          "type": "mesh",
+          "ambient": [0.4, 0.4, 0.4],
+          "meshFile": "models/apple/scene.gltf",
+          "diffuse": [0.5, 0.5, 0.5],
+          "specular": [1.0, 1.0, 1.0],
+          "shininess": 30.0,
+          "dynamic": true
+        }
+      ]
+    },
+    {
+      "name": "Onion",
+      "translate": [0, 0, 6],
+      "scale": [2.5, 2.5, 2.5],
+      "primitives": [
+        {
+          "type": "mesh",
+          "ambient": [0.4, 0.4, 0.4],
+          "meshFile": "models/onion/scene.gltf",
+          "diffuse": [0.5, 0.5, 0.5],
+          "specular": [1.0, 1.0, 1.0],
+          "shininess": 30.0,
+          "dynamic": true
+        }
+      ]
+    }
+  ]
+}

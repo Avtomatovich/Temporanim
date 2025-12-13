@@ -1,23 +1,22 @@
 #ifndef PROJECTILE_H
 #define PROJECTILE_H
 
+#include <random>
 #include <vector>
-#include "physics/rigidbody.h"
 #include "utils/sceneparser.h"
 
 class Projectile
 {
 public:
-    Projectile(const RigidBody& rigidBody);
+    Projectile(const RenderData& metaData);
 
-    RenderShapeData getProjectile();
-
-    void draw();
+    RenderShapeData spawn();
 
 private:
-    std::vector<RenderShapeData> projectiles;
+    std::vector<RenderShapeData> m_shapes;
 
-    const RigidBody& m_rigidBody;
+    std::default_random_engine gen;
+    std::uniform_int_distribution<int> idx;
 };
 
 #endif // PROJECTILE_H

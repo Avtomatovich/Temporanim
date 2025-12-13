@@ -2,9 +2,7 @@
 
 - [x] fix build issue on mac machine
 - [x] verify physics integration
-- [ ] create + edit demo vid
-
-## Samson
+- [x] create + edit demo vid
 
 - [ ] add collision logic
   - [x] enclose meshes in AABBs for collisions
@@ -26,12 +24,8 @@
   - [x] carrot
   - [x] apple
   - [x] onion
-
-## Carlos
-
 - [x] compute mass using constant density factor and computed volume
 - [ ] add projectile logic
   - [ ] add spawn logic (randomized)
   - [ ] add despawn logic (when new projectile is thrown)
   - [ ] add throwing logic
-- [ ] maybe skybox?
