@@ -20,6 +20,10 @@ public:
 
     void applyForce();
 
+    void applyForceAtPoint(const glm::vec3& point);
+
+    void applyImpulse(const glm::vec3& impulse);
+
     void integrate(float dt);
 
     void handleForces();
@@ -50,9 +54,6 @@ private:
     constexpr static glm::vec3 gravity{0.f, -9.8f, 0.f};
 
     void computeAuxiliaryVariables();
-
-    void applyForceAtPoint(const glm::vec3& point);
-    void applyImpulse(const glm::vec3& impulse);
 
     glm::mat3 computeCubeInertia(float M, const glm::vec3& dim);
     glm::mat3 computeSphereInertia(float M, float r);
