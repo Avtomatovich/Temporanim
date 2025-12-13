@@ -215,21 +215,30 @@ void Realtime::parseProjectiles() {
 }
 
 void Realtime::toggleFeatures() {
-    // Play/pause animation
-    if (m_keyMap[Qt::Key_P] && !m_pToggled) m_scene->playAnim();
-
-    // Save toggle state to avoid per-frame checks
-    m_pToggled = m_keyMap[Qt::Key_P];
-
     // Swap to previous animation if pressing left arrow, else to next if right arrow
     if (m_keyMap[Qt::Key_Left]) m_scene->swapAnim(false);
     else if (m_keyMap[Qt::Key_Right]) m_scene->swapAnim(true);
 
+    // Play/pause animation
+    if (m_keyMap[Qt::Key_P] && !m_pToggled) m_scene->playAnim();
+
+    // Save P's toggle state to avoid per-frame checks
+    m_pToggled = m_keyMap[Qt::Key_P];
+
     // Toggle normal mapping
     if (m_keyMap[Qt::Key_N] && !m_nToggled) m_scene->toggleNormalMap();
 
-    // Save toggle state to avoid per-frame checks
+    // Save N's toggle state to avoid per-frame checks
     m_nToggled = m_keyMap[Qt::Key_N];
+
+    // Enable F key when projectiles are enabled
+    if (settings.enableProjectiles) {
+        // Throw projectile
+        if (m_keyMap[Qt::Key_F] && !m_fToggled) m_scene->spawn();
+
+        // Save F's toggle state to avoid per-frame checks
+        m_fToggled = m_keyMap[Qt::Key_F];
+    }
 }
 
 // ================== Camera Movement!

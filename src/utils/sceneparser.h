@@ -9,6 +9,7 @@
 #define MAX_LIGHTS 8
 #define MAX_BONES 128
 #define MAX_WEIGHTS 4
+#define MAX_PROJECTILES 5
 
 // Struct which contains vertex data for indexed mesh rendering
 struct Vertex {
