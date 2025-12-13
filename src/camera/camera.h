@@ -26,6 +26,8 @@ public:
 
     const glm::vec3& getPos() const;
 
+    const glm::vec3& getLook() const;
+
     void perspective(float near, float far);    
 
 private:
@@ -40,6 +42,7 @@ private:
     float m_far;
 
     glm::vec3 m_pos;
+    glm::vec3 m_look;
 };
 
 #endif // CAMERA_H
