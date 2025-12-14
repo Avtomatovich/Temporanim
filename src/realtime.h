@@ -68,5 +68,5 @@ private:
     GLuint m_shader;
 
     // Projectile Data
-    std::optional<Projectile> m_projectiles;
+    Projectile m_projectiles;
 };

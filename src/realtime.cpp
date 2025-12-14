@@ -77,8 +77,8 @@ void Realtime::initializeGL() {
 
     // Load shader program ID
     m_shader = ShaderLoader::createShaderProgram(
-                    "./resources/shaders/default.vert",
-                    "./resources/shaders/default.frag"
+                    ":/resources/shaders/default.vert",
+                    ":/resources/shaders/default.frag"
                 );
 
     // Parse projectiles
@@ -148,12 +148,12 @@ void Realtime::sceneChanged() {
                     settings.shapeParameter1,
                     settings.shapeParameter2);
 
-    if (m_projectiles.has_value()) m_scene->loadProjectiles(m_projectiles.value());
-
-    glErrorCheck();
+    m_scene->loadProjectiles(m_projectiles);
 
     // Send signal to UI to reset checkboxes
     emit sceneLoaded();
+
+    glErrorCheck();
 
     update(); // asks for a PaintGL() call to occur
 }
@@ -188,8 +188,7 @@ void Realtime::parseProjectiles() {
                                  .append("projectiles.json");
 
     if (filePath.isNull()) {
-        std::cout << "Failed to load projectile data file." << std::endl;
-        return;
+        throw std::runtime_error("Failed to load projectile data file.");
     }
 
     std::string projectilePath = filePath.toStdString();
@@ -204,13 +203,11 @@ void Realtime::parseProjectiles() {
 
     // Exit if parsing fails
     if (!success) {
-        std::cerr << "Error loading projectile data: \"" << projectilePath << "\"" << std::endl;
-        finish();
-        std::exit(EXIT_FAILURE);
+        throw std::runtime_error("Error loading projectile data: \"" + projectilePath + "\"");
     }
 
     // Create projectiles
-    m_projectiles = projectileData;
+    m_projectiles = Projectile{projectileData};
 }
 
 void Realtime::toggleFeatures() {
@@ -220,23 +217,25 @@ void Realtime::toggleFeatures() {
 
     // Play/pause animation
     if (m_keyMap[Qt::Key_P] && !m_pToggled) m_scene->playAnim();
-
     // Save P's toggle state to avoid per-frame checks
     m_pToggled = m_keyMap[Qt::Key_P];
 
     // Toggle normal mapping
     if (m_keyMap[Qt::Key_N] && !m_nToggled) m_scene->toggleNormalMap();
-
     // Save N's toggle state to avoid per-frame checks
     m_nToggled = m_keyMap[Qt::Key_N];
 
     // Enable F key when projectiles are enabled
     if (settings.enableProjectiles) {
-        // Throw projectile
-        if (m_keyMap[Qt::Key_F] && !m_fToggled) m_scene->spawn();
-
-        // Save F's toggle state to avoid per-frame checks
-        m_fToggled = m_keyMap[Qt::Key_F];
+        try {
+            // Throw projectile
+            if (m_keyMap[Qt::Key_F] && !m_fToggled) m_scene->spawn();
+            // Save F's toggle state to avoid per-frame checks
+            m_fToggled = m_keyMap[Qt::Key_F];
+        } catch (std::exception& e) {
+            std::cerr << "Exception: " << e.what() << std::endl;
+            finish();
+        }
     }
 }
 
@@ -299,6 +298,8 @@ void Realtime::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void Realtime::timerEvent(QTimerEvent *event) {
+    makeCurrent();
+
     if (!m_metaData.has_value() || !m_scene.has_value()) return;
 
     int elapsedms   = m_elapsedTimer.elapsed();
