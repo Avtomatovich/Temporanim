@@ -86,10 +86,11 @@ private:
     bool m_torqueEnabled = false;
     bool m_collisionsEnabled = false;
 
-    int m_projectileIdx;
+    int m_projectileFront;
+    int m_currProjectile = -1;
     int m_numProjectiles = 0;
 
-    constexpr static float strength = 2.f;
+    constexpr static float strength = 20.f;
 
     // std::string findMeshfile(const std::string& query);
 };

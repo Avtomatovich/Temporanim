@@ -54,7 +54,7 @@ Scene::Scene(const RenderData& metaData,
     }
 
     // Init index of first projectile instance in shape list
-    m_projectileIdx = m_shapes.size();
+    m_projectileFront = m_shapes.size();
 }
 
 void Scene::initModelAndTex(const RenderShapeData& shape) {
@@ -207,6 +207,12 @@ void Scene::updatePhys(float dt) {
 
     for (auto& [_, rb] : m_physMap) rb.clearForces();
 
+    // throw
+    if (m_currProjectile >= 0) {
+        m_physMap.at(m_currProjectile).applyImpulse(strength * m_cam.getLook());
+        m_currProjectile = -1;
+    }
+
     //  gravity
     if (m_gravityEnabled) {
         for (auto& [_, rb] : m_physMap) rb.applyForce();
@@ -287,8 +293,8 @@ void Scene::spawn() {
     // Increment projectile count
     m_numProjectiles++;
 
-    // Apply impulse to rigid body
-    m_physMap.at(i).applyImpulse(strength * m_cam.getLook());
+    // Store current projectile key
+    m_currProjectile = i;
 }
 
 void Scene::despawn() {
@@ -297,7 +303,7 @@ void Scene::despawn() {
     // TODO: update m_physMap
 
     // Shift all projectiles in collision map one step back
-    for (int i = m_projectileIdx + 1; i < m_shapes.size(); ++i) {
+    for (int i = m_projectileFront + 1; i < m_shapes.size(); ++i) {
         m_collMap.emplace(i - 1, m_collMap.at(i));
     }
 
@@ -305,7 +311,7 @@ void Scene::despawn() {
     m_collMap.erase(m_shapes.size() - 1);
 
     // Remove first projectile instance from shape list
-    m_shapes.erase(m_shapes.begin() + m_projectileIdx);
+    m_shapes.erase(m_shapes.begin() + m_projectileFront);
 
     // Decrement projectile count
     m_numProjectiles--;
