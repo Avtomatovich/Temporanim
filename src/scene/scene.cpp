@@ -65,8 +65,12 @@ void Scene::initModelAndTex(const RenderShapeData& shape) {
         m_modelMap.emplace(meshfile, Model{meshfile});
     }
 
-    // Add to mesh to model
-    m_modelMap.at(meshfile).addMesh(shape);
+
+    // If primitive is mesh
+    if (shape.primitive.type == PrimitiveType::PRIMITIVE_MESH) {
+        // Add to mesh to model
+        m_modelMap.at(meshfile).addMesh(shape);
+    }
 
     // Add texture map to slot 0 if used
     if (shape.primitive.material.textureMap.isUsed) {

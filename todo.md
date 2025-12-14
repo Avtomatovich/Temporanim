@@ -15,18 +15,19 @@
 - [ ] add logic for character hit animation
   - [ ] gather assets + animations
     - [x] find and add better brick texture with normal mapping
-    - [ ] fetch knight model from mixamo with pre-baked shield
-    - [ ] combine idle + hit animation with model
-    - [ ] export from Blender
+    - [ ] handle odd lighting of gltf meshes
 - [x] find, add, test fruit/veg models (_mesh_)
   - [x] sweet potato
   - [x] cabbage
   - [x] carrot
   - [x] apple
   - [x] onion
-- [ ] compute mass using constant density factor and computed volume
 - [ ] add projectile logic
-  - [ ] add spawn logic
+  - [x] add spawn logic
     - [x] fix performance issue
-  - [ ] add despawn logic (when new projectile is thrown)
   - [ ] add throwing logic
+  - [ ] add despawn logic
+- [ ] fix physics bugs
+  - [ ] regulate bouncing
+  - [ ] set mass using constant density val and computed volume
+  - [ ] fix sinking mesh issue
