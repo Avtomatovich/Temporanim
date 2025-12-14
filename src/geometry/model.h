@@ -11,6 +11,8 @@ class Model
 public:
     Model(const std::string& meshfile);
 
+    const std::string& getMeshfile() const;
+
     const Geometry& getGeom(int key) const;
 
     void addMesh(RenderShapeData& shape);

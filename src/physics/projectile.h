@@ -8,6 +8,8 @@
 class Projectile
 {
 public:
+    Projectile() {}
+
     Projectile(const RenderData& metaData);
 
     RenderShapeData spawn();

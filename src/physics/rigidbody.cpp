@@ -127,10 +127,10 @@ void RigidBody::applyImpulse(const glm::vec3& impulse) {
     P_t += impulse;
 }
 
-void RigidBody::handleForces() {
+void RigidBody::applyReaction() {
     for (int i = 0; i < 3; ++i) {
         if (v[i] < 0) {
-            v[i] = -v[i] * restitution;
+            v[i] *= -restitution;
 
             // dampen velocity on impact
             v[i] *= 0.9f;

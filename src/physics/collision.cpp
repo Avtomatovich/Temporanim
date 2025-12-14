@@ -59,12 +59,13 @@ void Collision::updateBox(const glm::mat4& ctm) {
 
     if (type == PrimitiveType::PRIMITIVE_MESH) {
         // NOTE: ignore rotation to maintain axis alignment
-        glm::mat4 TS = glm::scale(glm::translate(glm::mat4{1.f}, center), height);
+        glm::mat4 T = glm::translate(glm::mat4{1.f}, center);
+        glm::mat4 S = glm::scale(glm::mat4{1.f}, height);
         
         // convert from object space to world space
         box = Box{
-            TS * glm::vec4{min, 1.f},
-            TS * glm::vec4{max, 1.f}
+            T * S * glm::vec4{min, 1.f},
+            T * S * glm::vec4{max, 1.f}
         };
     }
 }

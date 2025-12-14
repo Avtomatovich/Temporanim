@@ -4,6 +4,10 @@ Model::Model(const std::string& meshfile) :
     m_meshfile(meshfile)
 {}
 
+const std::string& Model::getMeshfile() const {
+    return m_meshfile;
+}
+
 const Geometry& Model::getGeom(int key) const {
     return m_meshMap.at(key);
 }

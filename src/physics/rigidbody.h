@@ -26,7 +26,7 @@ public:
 
     void integrate(float dt);
 
-    void handleForces();
+    void applyReaction();
 
 private:
     glm::vec3 x_t{0.f};                   // position x(t) - center of mass

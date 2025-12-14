@@ -21,9 +21,8 @@ void Camera::setView(const glm::vec3& pos,
                      const glm::vec3& up)
 {
     m_pos = pos;
-    m_look = glm::normalize(look);
 
-    glm::vec3 w = glm::normalize(-look);
+    glm::vec3 w = m_look = glm::normalize(-look);
     glm::vec3 v = glm::normalize(up - glm::dot(up, w) * w);
     glm::vec3 u = glm::cross(v, w);
 
