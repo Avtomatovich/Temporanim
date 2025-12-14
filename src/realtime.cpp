@@ -148,7 +148,13 @@ void Realtime::sceneChanged() {
                     settings.shapeParameter1,
                     settings.shapeParameter2);
 
-    m_scene->loadProjectiles(m_projectiles);
+    // Add projectile data to scene
+    try {
+        m_scene->loadProjectiles(m_projectiles);
+    } catch (std::exception& e) {
+        std::cerr << "Exception: " << e.what() << std::endl;
+        finish();
+    }
 
     // Send signal to UI to reset checkboxes
     emit sceneLoaded();

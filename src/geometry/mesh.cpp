@@ -1,6 +1,6 @@
 #include "mesh.h"
 
-Mesh::Mesh(std::vector<Vertex>& vertexData,
+Mesh::Mesh(const std::vector<Vertex>& vertexData,
            const std::vector<unsigned int>& indexes) :
     m_vertexData(vertexData),
     m_indexes(indexes)

@@ -24,8 +24,9 @@
   - [x] carrot
   - [x] apple
   - [x] onion
-- [x] compute mass using constant density factor and computed volume
+- [ ] compute mass using constant density factor and computed volume
 - [ ] add projectile logic
-  - [ ] add spawn logic (randomized)
+  - [ ] add spawn logic
+    - [x] fix performance issue
   - [ ] add despawn logic (when new projectile is thrown)
   - [ ] add throwing logic

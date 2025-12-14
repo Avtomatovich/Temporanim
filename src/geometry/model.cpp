@@ -12,7 +12,7 @@ const Geometry& Model::getGeom(int key) const {
     return m_meshMap.at(key);
 }
 
-void Model::addMesh(RenderShapeData& shape) {
+void Model::addMesh(const RenderShapeData& shape) {
     if (!m_meshMap.contains(shape.id)) {
         m_meshMap.emplace(shape.id,
                           Geometry{std::make_unique<Mesh>(shape.vertexData,

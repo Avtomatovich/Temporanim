@@ -15,7 +15,7 @@ public:
 
     const Geometry& getGeom(int key) const;
 
-    void addMesh(RenderShapeData& shape);
+    void addMesh(const RenderShapeData& shape);
 
     void clean();
 

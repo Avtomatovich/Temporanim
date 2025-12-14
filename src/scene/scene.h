@@ -50,12 +50,13 @@ public:
     inline void enableGravity(bool toggle) { m_gravityEnabled = toggle; }
     inline void enableRotation(bool toggle) { m_torqueEnabled = toggle; }
     inline void enableCollisions(bool toggle) { m_collisionsEnabled = toggle; }
-    inline void enableProjectiles(bool toggle) { m_projectilesEnabled = toggle; }
 
     // projectile funcs
     void loadProjectiles(const Projectile& projectiles);
 
     void spawn();
+
+    void despawn();
 
 private:
     SceneGlobalData m_global;
@@ -72,6 +73,9 @@ private:
 
     std::unique_ptr<Projectile> m_projectiles;
 
+    void initModelAndTex(const RenderShapeData& shape);
+    void initPhys(const RenderShapeData& shape, int i);
+
     void addPrim(const RenderShapeData& shape, int param1, int param2);
     const Geometry& getGeom(const RenderShapeData& shape);
     int getGeomKey(const RenderShapeData& shape);
@@ -81,7 +85,11 @@ private:
     bool m_gravityEnabled = false;
     bool m_torqueEnabled = false;
     bool m_collisionsEnabled = false;
-    bool m_projectilesEnabled = false;
+
+    int m_projectileIdx;
+    int m_numProjectiles = 0;
+
+    constexpr static float strength = 2.f;
 
     // std::string findMeshfile(const std::string& query);
 };

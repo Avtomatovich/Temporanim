@@ -12,6 +12,8 @@ public:
 
     Projectile(const RenderData& metaData);
 
+    const std::vector<RenderShapeData>& getShapes() const;
+
     RenderShapeData spawn();
 
 private:

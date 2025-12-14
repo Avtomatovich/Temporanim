@@ -32,14 +32,6 @@ Scene::Scene(const RenderData& metaData,
 
         const std::string& meshfile = shape.primitive.meshfile;
 
-        // Add collision instance to collision map
-        m_collMap.emplace(i, shape);
-
-        // Add model to model map if not present
-        if (!m_modelMap.contains(meshfile) && !meshfile.empty()) {
-            m_modelMap.emplace(meshfile, meshfile);
-        }
-
         // Add animator to animator map if not present
         if (!m_animMap.contains(meshfile) && !meshfile.empty()) {
             const AnimData& animData = metaData.animData.at(meshfile);
@@ -47,58 +39,66 @@ Scene::Scene(const RenderData& metaData,
             if (!animData.animations.empty()) m_animMap.emplace(meshfile, animData);
         }
 
-        // If shape is mesh
-        if (shape.primitive.type == PrimitiveType::PRIMITIVE_MESH) {
-            // Add to model's mesh map
-            m_modelMap.at(meshfile).addMesh(shape);
-        } else {
-            // Add primitive to geom map if not present
+        // Add primitive to geom map if not present and not mesh
+        if (shape.primitive.type != PrimitiveType::PRIMITIVE_MESH) {
             if (!m_primMap.contains(getGeomKey(shape))) {
                 addPrim(shape, param1, param2);
             }
         }
 
-        // Add rigid body to phys map if dynamic
-        if (shape.primitive.isDynamic) {
-            // Use default mass of 1.f
-            m_physMap.emplace(i, RigidBody{shape.primitive.type,
-                                           1.f,
-                                           shape.ctm,
-                                           m_collMap.at(i).getBox()});
-        }
+        // Init mesh and texture data
+        initModelAndTex(shape);
 
-        // Add texture map to slot 0 if used
-        if (shape.primitive.material.textureMap.isUsed) {
-            const std::string& filename = shape.primitive.material.textureMap.filename;
+        // Init physics data
+        initPhys(shape, i);
+    }
 
-            if (!m_texMap.contains(filename)) {
-                m_texMap.emplace(filename, Texture{filename, 0});
-            }
-        }
+    // Init index of first projectile instance in shape list
+    m_projectileIdx = m_shapes.size();
+}
 
-        // Add normal map to slot 1 if used
-        if (shape.primitive.material.bumpMap.isUsed) {
-            const std::string& filename = shape.primitive.material.bumpMap.filename;
+void Scene::initModelAndTex(const RenderShapeData& shape) {
+    const std::string& meshfile = shape.primitive.meshfile;
 
-            if (!m_texMap.contains(filename)) {
-                m_texMap.emplace(filename, Texture{filename, 1});
-            }
+    // Add model to model map if not present
+    if (!m_modelMap.contains(meshfile) && !meshfile.empty()) {
+        m_modelMap.emplace(meshfile, Model{meshfile});
+    }
+
+    // Add to mesh to model
+    m_modelMap.at(meshfile).addMesh(shape);
+
+    // Add texture map to slot 0 if used
+    if (shape.primitive.material.textureMap.isUsed) {
+        const std::string& filename = shape.primitive.material.textureMap.filename;
+
+        if (!m_texMap.contains(filename)) {
+            m_texMap.emplace(filename, Texture{filename, 0});
         }
     }
 
-    // std::string meshfile = findMeshfile("paladin");
-    // if (meshfile.empty()) {
-    //     std::cerr << "Missing paladin model" << std::endl;
-    // } else {
-    //     // for each shape
-    //     for (int i = 0; i < m_shapes.size(); ++i) {
-    //         // if mesh is part of model
-    //         if (meshfile == m_shapes[i].primitive.meshfile) {
-    //             // fetch and scale down mesh AABB
-    //             m_collMap.at(i).scaleBox(0.8f);
-    //         }
-    //     }
-    // }
+    // Add normal map to slot 1 if used
+    if (shape.primitive.material.bumpMap.isUsed) {
+        const std::string& filename = shape.primitive.material.bumpMap.filename;
+
+        if (!m_texMap.contains(filename)) {
+            m_texMap.emplace(filename, Texture{filename, 1});
+        }
+    }
+}
+
+void Scene::initPhys(const RenderShapeData& shape, int i) {
+    // Add collision instance to collision map
+    m_collMap.emplace(i, Collision{shape});
+
+    // Add rigid body to phys map if dynamic
+    if (shape.primitive.isDynamic) {
+        // Use default mass of 1.f
+        m_physMap.emplace(i, RigidBody{shape.primitive.type,
+                                       1.f,
+                                       shape.ctm,
+                                       m_collMap.at(i).getBox()});
+    }
 }
 
 bool Scene::draw(GLuint shader) {
@@ -164,20 +164,20 @@ bool Scene::draw(GLuint shader) {
 void Scene::addPrim(const RenderShapeData& shape, int param1, int param2) {
     int key = getGeomKey(shape);
     switch(shape.primitive.type) {
-    case PrimitiveType::PRIMITIVE_CUBE:
-        m_primMap.emplace(key, std::make_unique<Cube>(param1));
-        break;
-    case PrimitiveType::PRIMITIVE_CONE:
-        m_primMap.emplace(key, std::make_unique<Cone>(param1, param2));
-        break;
-    case PrimitiveType::PRIMITIVE_CYLINDER:
-        m_primMap.emplace(key, std::make_unique<Cylinder>(param1, param2));
-        break;
-    case PrimitiveType::PRIMITIVE_SPHERE:
-        m_primMap.emplace(key, std::make_unique<Sphere>(param1, param2));
-        break;
-    case PrimitiveType::PRIMITIVE_MESH:
-        break;
+        case PrimitiveType::PRIMITIVE_CUBE:
+            m_primMap.emplace(key, std::make_unique<Cube>(param1));
+            break;
+        case PrimitiveType::PRIMITIVE_CONE:
+            m_primMap.emplace(key, std::make_unique<Cone>(param1, param2));
+            break;
+        case PrimitiveType::PRIMITIVE_CYLINDER:
+            m_primMap.emplace(key, std::make_unique<Cylinder>(param1, param2));
+            break;
+        case PrimitiveType::PRIMITIVE_SPHERE:
+            m_primMap.emplace(key, std::make_unique<Sphere>(param1, param2));
+            break;
+        case PrimitiveType::PRIMITIVE_MESH:
+            break;
     }
 }
 
@@ -195,11 +195,121 @@ int Scene::getGeomKey(const RenderShapeData& shape) {
                static_cast<int>(shape.primitive.type);
 }
 
+void Scene::updatePhys(float dt) {
+    if (!m_gravityEnabled && !m_torqueEnabled && !m_collisionsEnabled) {
+        for (auto& [_, rb] : m_physMap) rb.reset();
+        return;
+    }
+
+    for (auto& [_, rb] : m_physMap) rb.clearForces();
+
+    //  gravity
+    if (m_gravityEnabled) {
+        for (auto& [_, rb] : m_physMap) rb.applyForce();
+    } else {
+        for (auto& [_, rb] : m_physMap) rb.reset();
+    }
+
+    // torque
+    if (m_torqueEnabled) {}
+
+    for (auto& [_, rb] : m_physMap) rb.integrate(dt);
+
+    // collision
+    if (m_collisionsEnabled) {
+        // update dynamic AABBs
+        for (auto& [rid, rb] : m_physMap) m_collMap.at(rid).updateBox(rb.getCtm());
+
+        // for each dynamic object
+        for (auto& [rid, rb] : m_physMap) {
+            Collision& affector = m_collMap.at(rid);
+            // check each collision object (static + dynamic)
+            for (const auto& [cid, affectee] : m_collMap) {
+                // skip self and previously collided dynamics
+                if (cid == rid || (m_physMap.contains(cid) && cid <= rid)) continue;              
+
+                // if collision detected
+                if (affector.detect(affectee)) {
+                    std::cout << "collision detected" << std::endl;
+
+                    // determine reaction forces
+                    rb.applyReaction();
+
+                    // determine affectee's reaction forces if affectee is dynamic
+                    if (m_physMap.contains(cid)) m_physMap.at(cid).applyReaction();
+                }
+            }
+        }
+    }
+}
+
+void Scene::loadProjectiles(const Projectile& projectiles) {
+    m_projectiles = std::make_unique<Projectile>(projectiles);
+
+    if (!m_projectiles) throw std::runtime_error("Projectile instance is null");
+
+    // Fetch list of projectile shapes
+    const auto& shapes = m_projectiles->getShapes();
+    // Init model and texture instances for each
+    for (const auto& shape : shapes) initModelAndTex(shape);
+}
+
+void Scene::spawn() {
+    if (!m_projectiles) return;
+
+    // TODO: Despawn shape if count exceeds capping value
+    // if (m_numProjectiles > MAX_PROJECTILES) despawn();
+
+    // Fetch random shape from list of projectile shapes
+    RenderShapeData shape = m_projectiles->spawn();
+
+    // Throw exception if projectile is not marked as dynamic
+    if (!shape.primitive.isDynamic) throw std::runtime_error("Projectile not dynamic");
+
+    // Translate shape to camera location
+    glm::vec3 camPos = m_cam.getPos();
+    shape.ctm[3] = glm::vec4{camPos.x, camPos.y - 1, camPos.z, 1.f};
+    shape.ctmInv = glm::inverse(shape.ctm);
+
+    // Init key for maps
+    int i = m_shapes.size();
+
+    // Init related list and map entries for shape
+    initPhys(shape, i);
+
+    // Add projectile shape to shapes list
+    m_shapes.push_back(shape);
+
+    // Increment projectile count
+    m_numProjectiles++;
+
+    // Apply impulse to rigid body
+    m_physMap.at(i).applyImpulse(strength * m_cam.getLook());
+}
+
+void Scene::despawn() {
+    if (m_numProjectiles <= 0) return;
+
+    // TODO: update m_physMap
+
+    // Shift all projectiles in collision map one step back
+    for (int i = m_projectileIdx + 1; i < m_shapes.size(); ++i) {
+        m_collMap.emplace(i - 1, m_collMap.at(i));
+    }
+
+    // Remove final entry in collision maps
+    m_collMap.erase(m_shapes.size() - 1);
+
+    // Remove first projectile instance from shape list
+    m_shapes.erase(m_shapes.begin() + m_projectileIdx);
+
+    // Decrement projectile count
+    m_numProjectiles--;
+}
+
 void Scene::clean() {
     for (auto& [_, prim] : m_primMap) prim.clean();
-
     for (auto& [_, model] : m_modelMap) model.clean();
-
     for (auto& [_, tex] : m_texMap) tex.clean();
 }
 
@@ -222,91 +332,3 @@ void Scene::swapAnim(bool toNext) {
 void Scene::toggleNormalMap() {
     m_normalMapToggled = !m_normalMapToggled;
 }
-
-void Scene::updatePhys(float dt) {
-    if (!m_gravityEnabled && !m_torqueEnabled && !m_collisionsEnabled) {
-        for (auto& [_, rb] : m_physMap) rb.reset();
-        return;
-    }
-
-    for (auto& [_, rb] : m_physMap) rb.clearForces();
-
-    //  gravity
-    if (m_gravityEnabled) {
-        for (auto& [_, rb] : m_physMap) rb.applyForce();
-    } else {
-        for (auto& [_, rb] : m_physMap) rb.reset();
-    }
-
-    // torque
-    if (m_torqueEnabled) {
-        // for (auto& [id, rb] : m_physMap) {
-        //     glm::vec3 axis = glm::normalize(glm::vec3{
-        //         std::sin(id * 1.23f),
-        //         std::cos(id * 4.56f),
-        //         std::sin(id * 7.89f)
-        //     });
-        //     rb.torque += axis * 3.0f;
-        // }
-    }
-
-    for (auto& [_, rb] : m_physMap) rb.integrate(dt);
-
-    // collision
-    if (m_collisionsEnabled) {
-        // update dynamic AABBs
-        for (auto& [rid, rb] : m_physMap) m_collMap.at(rid).updateBox(rb.getCtm());
-
-        // for each dynamic object
-        for (auto& [rid, rb] : m_physMap) {
-            Collision& affector = m_collMap.at(rid);
-            // check each collision object (static + dynamic)
-            for (const auto& [cid, affectee] : m_collMap) {
-                // skip self and previously collided dynamics
-                if (cid == rid || (m_physMap.contains(cid) && cid <= rid)) continue;              
-
-                // if collision detected
-                if (affector.detect(affectee)) {
-                    std::cout << "collision detected" << std::endl;
-
-                    // determine reaction forces
-                    rb.handleForces();
-
-                    // determine affectee's reaction forces if affectee is dynamic
-                    if (m_physMap.contains(cid)) m_physMap.at(cid).handleForces();
-                }
-            }
-        }
-    }
-}
-
-void Scene::loadProjectiles(const Projectile& projectiles) {
-    m_projectiles = std::make_unique<Projectile>(projectiles);
-}
-
-void Scene::spawn() {
-
-}
-
-// std::string Scene::findMeshfile(const std::string& query) {
-//     std::string filename, meshfile;
-//     // convert query to lowercase
-//     for (const char& c : query) filename += std::tolower(c);
-
-//     for (const RenderShapeData& shape: m_shapes) {
-//         // convert meshfile to lowercase
-//         for (const char& c : shape.primitive.meshfile) {
-//             meshfile += std::tolower(c);
-//         }
-
-//         // compare
-//         if (meshfile.find(filename) != std::string::npos) {
-//             return shape.primitive.meshfile;
-//         }
-
-//         // clear lowercase meshfile string for next iteration
-//         meshfile.clear();
-//     }
-
-//     return "";
-// }

@@ -7,7 +7,7 @@
 class Mesh
 {
 public:
-    Mesh(std::vector<Vertex>& vertexData,
+    Mesh(const std::vector<Vertex>& vertexData,
          const std::vector<unsigned int>& indexes);
 
     const std::vector<Vertex>& getVertices() const;
