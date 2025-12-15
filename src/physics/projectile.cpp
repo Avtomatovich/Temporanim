@@ -3,6 +3,7 @@
 Projectile::Projectile(const RenderData& metaData)
     : m_shapes(metaData.shapes)
 {
+    std::random_device rd;
     gen = std::default_random_engine(rd());
     idx = std::uniform_int_distribution<int>{0, static_cast<int>(m_shapes.size() - 1)};
 }

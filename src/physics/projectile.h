@@ -19,7 +19,6 @@ public:
 private:
     std::vector<RenderShapeData> m_shapes;
 
-    std::random_device rd;
     std::default_random_engine gen;
     std::uniform_int_distribution<int> idx;
 };
