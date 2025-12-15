@@ -4,7 +4,7 @@
 #include <glm/gtx/transform.hpp>
 
 void buildRenderData(RenderData& renderData, SceneNode* node, glm::mat4 ctm) {
-    if (node == nullptr) return;
+    if (!node) return;
 
     for (SceneTransformation* transform : node->transformations) {
         switch (transform->type) {
@@ -77,10 +77,7 @@ void buildRenderData(RenderData& renderData, SceneNode* node, glm::mat4 ctm) {
 
 bool SceneParser::parse(std::string filepath, RenderData &renderData) {
     ScenefileReader fileReader = ScenefileReader(filepath);
-    bool success = fileReader.readJSON();
-    if (!success) {
-        return false;
-    }
+    if (!fileReader.readJSON()) return false;
 
     renderData.globalData = fileReader.getGlobalData();
     renderData.cameraData = fileReader.getCameraData();
