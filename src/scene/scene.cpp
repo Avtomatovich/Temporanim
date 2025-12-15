@@ -55,6 +55,10 @@ Scene::Scene(const RenderData& metaData,
 
     // Init index of first projectile instance in shape list
     m_projectileFront = m_shapes.size();
+
+    // Init random number generator
+    std::random_device rd;
+    gen = std::default_random_engine(rd());
 }
 
 void Scene::initModelAndTex(const RenderShapeData& shape) {
@@ -209,8 +213,7 @@ void Scene::updatePhys(float dt) {
 
     // throw
     if (m_currProjectile >= 0) {
-        m_physMap.at(m_currProjectile).applyImpulse(strength * m_cam.getLook());
-        m_currProjectile = -1;
+        m_physMap.at(m_currProjectile).applyImpulse(m_cam.getLook());
     }
 
     //  gravity
@@ -221,7 +224,17 @@ void Scene::updatePhys(float dt) {
     }
 
     // torque
-    if (m_torqueEnabled) {}
+    if (m_torqueEnabled) {
+        if (m_currProjectile >= 0) {
+            std::uniform_real_distribution<float> axes{-2.f * M_PI, 2.f * M_PI};
+
+            m_physMap.at(m_currProjectile).applyTorque({
+                                                            axes(gen),
+                                                            axes(gen),
+                                                            axes(gen)
+                                                        });
+        }
+    }
 
     for (auto& [_, rb] : m_physMap) rb.integrate(dt);
 
@@ -259,6 +272,9 @@ void Scene::updatePhys(float dt) {
             }
         }
     }
+
+    // reset current projectile index
+    m_currProjectile = -1;
 }
 
 void Scene::loadProjectiles(const Projectile& projectiles) {

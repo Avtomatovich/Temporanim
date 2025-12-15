@@ -26,7 +26,7 @@
     - [x] fix performance issue
   - [x] add throwing logic
   - [x] add despawn logic
-  - [ ] add rotation to initial throw
+  - [x] add rotation to initial throw
 - [ ] fix physics bugs
   - [ ] set mass using constant density val and computed volume
   - [x] regulate bouncing

@@ -115,6 +115,10 @@ void RigidBody::applyForce() {
     force += mass * gravity;
 }
 
+void RigidBody::applyTorque(const glm::vec3& axis) {
+    torque += strength * glm::normalize(axis);
+}
+
 void RigidBody::applyForceAtPoint(const glm::vec3& point) {
     applyForce();
 
@@ -124,24 +128,20 @@ void RigidBody::applyForceAtPoint(const glm::vec3& point) {
 
 void RigidBody::applyImpulse(const glm::vec3& impulse) {
     // momentum directly
-    P_t += impulse;
+    P_t += strength * impulse;
 }
 
 void RigidBody::applyReaction() {
-    for (int i = 0; i < 3; ++i) {
-        if (v[i] < 0) {
-            v[i] *= -restitution;
+    v *= -restitution;
 
-            // dampen velocity on impact
-            v[i] *= 0.9f;
+    // dampen velocity on impact
+    v *= 0.9f;
 
-            // new linear momentum to match new velocity
-            P_t[i] = mass * v[i];
+    // new linear momentum to match new velocity
+    P_t = mass * v;
 
-            // reduce spin on impact
-            L_t[i] *= 0.95f;
-        }
-    }
+    // reduce spin on impact
+    L_t *= 0.95f;
 }
 
 // Baraff equation (5-3)

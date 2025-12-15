@@ -22,7 +22,7 @@ public:
 
     void applyForce();
 
-    void applyForceAtPoint(const glm::vec3& point);
+    void applyTorque(const glm::vec3& axis);
 
     void applyImpulse(const glm::vec3& impulse);
 
@@ -60,11 +60,14 @@ private:
 
     void computeAuxiliaryVariables();
 
+    void applyForceAtPoint(const glm::vec3& point);
+
     glm::mat3 computeCubeInertia(float M, const glm::vec3& dim);
     glm::mat3 computeSphereInertia(float M, float r);
     glm::mat3 computeCylinderInertia(float M, float r, float h);
     glm::mat3 computeConeInertia(float M, float r, float h);
 
+    constexpr static float strength = 20.f;
     constexpr static glm::vec3 gravity{0.f, -9.8f, 0.f};
 };
 

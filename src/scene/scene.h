@@ -26,7 +26,7 @@ public:
 
     void clean();
 
-    // tessellation funcs
+    // tessellation func
     void retessellate(int param1, int param2);
 
     // camera funcs
@@ -71,14 +71,7 @@ private:
     std::unordered_map<int, RigidBody> m_physMap;
     std::unordered_map<int, Collision> m_collMap;
 
-    std::unique_ptr<Projectile> m_projectiles;
-
-    void initModelAndTex(const RenderShapeData& shape);
-    void initPhys(const RenderShapeData& shape, int i);
-
-    void addPrim(const RenderShapeData& shape, int param1, int param2);
-    const Geometry& getGeom(const RenderShapeData& shape);
-    int getGeomKey(const RenderShapeData& shape);
+    std::unique_ptr<Projectile> m_projectiles;    
 
     bool m_normalMapToggled = true;
 
@@ -90,9 +83,14 @@ private:
     int m_currProjectile = -1;
     int m_numProjectiles = 0;
 
-    constexpr static float strength = 20.f;
+    std::default_random_engine gen;
 
-    // std::string findMeshfile(const std::string& query);
+    void initModelAndTex(const RenderShapeData& shape);
+    void initPhys(const RenderShapeData& shape, int i);
+
+    void addPrim(const RenderShapeData& shape, int param1, int param2);
+    const Geometry& getGeom(const RenderShapeData& shape);
+    int getGeomKey(const RenderShapeData& shape);
 };
 
 #endif // SCENE_H
