@@ -209,28 +209,16 @@ void Scene::updatePhys(float dt) {
 
     for (auto& [_, rb] : m_physMap) rb.clearForces();
 
-    // throw
-    if (m_currProjectile >= 0) {
-        m_physMap.at(m_currProjectile).applyImpulse(m_cam.getLook());
-    }
-
-    //  gravity
-    if (m_gravityEnabled) {
-        for (auto& [_, rb] : m_physMap) rb.applyForce();
-    } else {
-        for (auto& [_, rb] : m_physMap) rb.reset();
+    // gravity
+    for (auto& [_, rb] : m_physMap) {
+        m_gravityEnabled ? rb.applyForce() : rb.reset();
     }
 
     // torque
     if (m_torqueEnabled) {
         if (m_currProjectile >= 0) {
-            std::uniform_real_distribution<float> axes{-2.f * M_PI, 2.f * M_PI};
-
-            m_physMap.at(m_currProjectile).applyTorque({
-                                                            axes(gen),
-                                                            axes(gen),
-                                                            axes(gen)
-                                                        });
+            std::uniform_real_distribution<float> axes{-10.f, 10.f};
+            m_physMap.at(m_currProjectile).applyTorque({axes(gen), axes(gen), axes(gen)});
         }
     }
 
@@ -247,32 +235,32 @@ void Scene::updatePhys(float dt) {
             if (!m_physMap.contains(rid)) continue;
 
             // fetch applicant of collision
-            Collision& affector = m_collMap.at(rid);
+            const Collision& affector = m_collMap.at(rid);
 
             // check each collision object (static + dynamic)
             for (int cid = 0; cid < m_shapes.size(); cid++) {
+                // skip self and previously collided dynamics
+                if (cid == rid || (m_physMap.contains(cid) && cid <= rid)) continue;
+
                 // fetch recipient of collision
                 const Collision& affectee = m_collMap.at(cid);
 
-                // skip self and previously collided dynamics
-                if (cid == rid || (m_physMap.contains(cid) && cid <= rid)) continue;              
+                // fetch collision data
+                const auto& contact = affector.detect(affectee);
 
                 // if collision detected
-                if (affector.detect(affectee)) {
-                    std::cout << "collision detected" << std::endl;
+                if (contact) {
+                    // std::cout << "collision detected" << std::endl;
 
                     // determine reaction forces
-                    m_physMap.at(rid).applyReaction();
+                    m_physMap.at(rid).applyReaction(*contact);
 
                     // determine affectee's reaction forces if affectee is dynamic
-                    if (m_physMap.contains(cid)) m_physMap.at(cid).applyReaction();
+                    if (m_physMap.contains(cid)) m_physMap.at(cid).applyReaction(*contact);
                 }
             }
         }
     }
-
-    // reset current projectile index
-    m_currProjectile = -1;
 }
 
 void Scene::loadProjectiles(const Projectile& projectiles) {
@@ -289,10 +277,10 @@ void Scene::loadProjectiles(const Projectile& projectiles) {
 void Scene::spawn() {
     if (!m_projectiles) return;
 
-    // Despawn shape if count exceeds capping value
+    // Despawn shape if count exceeds limit
     if (m_numProjectiles >= MAX_PROJECTILES) despawn();
 
-    // Fetch random shape from list of projectile shapes
+    // Fetch random projectile
     RenderShapeData shape = m_projectiles->spawn();
 
     // Throw exception if projectile is not marked as dynamic
@@ -303,20 +291,20 @@ void Scene::spawn() {
     shape.ctm[3] = glm::vec4{camPos.x, camPos.y - 0.5f, camPos.z, 1.f};
     shape.ctmInv = glm::inverse(shape.ctm);
 
-    // Init key for maps
-    int i = m_shapes.size();
+    // Add projectile to shapes list
+    m_shapes.push_back(shape);
+
+    // Store current projectile index for maps
+    m_currProjectile = m_shapes.size() - 1;
 
     // Init related list and map entries for shape
-    initPhys(shape, i);
-
-    // Add projectile shape to shapes list
-    m_shapes.push_back(shape);
+    initPhys(shape, m_currProjectile);
 
     // Increment projectile count
     m_numProjectiles++;
 
-    // Store current projectile key
-    m_currProjectile = i;
+    // Apply impulse to throw
+    m_physMap.at(m_currProjectile).applyImpulse(m_cam.getLook());
 }
 
 void Scene::despawn() {
@@ -324,8 +312,8 @@ void Scene::despawn() {
 
     // Shift all projectiles in maps one step backwards
     for (int i = m_projectileFront + 1; i < m_shapes.size(); ++i) {
-        m_physMap[i - 1] = m_physMap.at(i);
-        m_collMap[i - 1] = m_collMap.at(i);
+        m_physMap[i - 1] = m_physMap[i];
+        m_collMap[i - 1] = m_collMap[i];
     }
 
     // Remove stale projectile from maps

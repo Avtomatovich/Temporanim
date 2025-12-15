@@ -11,8 +11,8 @@
   - [x] cube-box (for floors and walls)
   - [x] add rigid body logic to meshes
   - [x] collision loop
-  - [ ] compute reaction forces
-  - [ ] update character AABBs for animated models
+  - [x] compute reaction forces
+  - [ ] update AABBs for animated models
 - [x] gather assets + animations
   - [x] find and add better brick texture with normal mapping
   - [x] handle odd lighting of gltf meshes
@@ -22,7 +22,7 @@
   - [x] carrot
   - [x] apple
   - [x] onion
-- [ ] add projectile logic
+- [x] add projectile logic
   - [x] add spawn logic
     - [x] fix performance issue
   - [x] add throwing logic
@@ -31,4 +31,4 @@
 - [ ] fix physics bugs
   - [x] set mass using constant density val and computed volume
   - [x] regulate bouncing
-  - [ ] fix sinking mesh issue
+  - [ ] fix collision inconsistencies

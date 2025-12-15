@@ -5,7 +5,7 @@
 RigidBody::RigidBody(PrimitiveType shapeType, const glm::mat4& initCtm, const Box& box)
     : type(shapeType), ctm(initCtm)
 {
-    // TODO: compute mass using constant density factor and computed volume
+    // Compute state vars
     reset();
 
     // Precompute radius and bounding box sides
@@ -15,26 +15,26 @@ RigidBody::RigidBody(PrimitiveType shapeType, const glm::mat4& initCtm, const Bo
     // mass and inertia tensor based on shape type
     switch (type) {
         case PrimitiveType::PRIMITIVE_CUBE:
-            M = density * (scale.x * scale.y * scale.z);
+            M = rho * (scale.x * scale.y * scale.z);
             Ibody = computeCubeInertia(scale);
             break;
         case PrimitiveType::PRIMITIVE_SPHERE:
-            M = density * ((4.f / 3.f) * M_PI * r*r*r);
+            M = rho * ((4.f / 3.f) * M_PI * r*r*r);
             Ibody = computeSphereInertia(r);
             break;
         case PrimitiveType::PRIMITIVE_CYLINDER:
-            M = density * (M_PI * r*r * scale.y);
+            M = rho * (M_PI * r*r * scale.y);
             Ibody = computeCylinderInertia(r, scale.y);
             break;
         case PrimitiveType::PRIMITIVE_CONE:
-            M = density * ((1.f / 3.f) * M_PI * r*r * scale.y);
+            M = rho * ((1.f / 3.f) * M_PI * r*r * scale.y);
             Ibody = computeConeInertia(r, scale.y);
             break;
         case PrimitiveType::PRIMITIVE_MESH:
-            M = density * (side.x * side.y * side.z);
+            M = rho * (side.x * side.y * side.z);
             Ibody = computeCubeInertia(side);
         default:
-            M = density;
+            M = rho;
             Ibody = glm::mat3(1.f);
             break;
     }
@@ -67,11 +67,6 @@ void RigidBody::reset() {
     P_t = L_t = glm::vec3{0.f};
     clearForces();
     computeAuxiliaryVariables();
-}
-
-void RigidBody::reset(const glm::mat4& initCtm) {
-    ctm = initCtm;
-    reset();
 }
 
 glm::mat4 RigidBody::getCtm() const {
@@ -122,36 +117,37 @@ void RigidBody::clearForces() {
 }
 
 void RigidBody::applyForce() {
-    force += M * gravity;
+    // gravitational force
+    force += M * g;
 }
 
 void RigidBody::applyTorque(const glm::vec3& axis) {
-    torque += strength * glm::normalize(axis);
-}
-
-void RigidBody::applyForceAtPoint(const glm::vec3& point) {
-    applyForce();
-
-    // torque
-    torque += glm::cross(point - x_t, M * gravity);
+    torque += torque_mag * glm::normalize(axis);
 }
 
 void RigidBody::applyImpulse(const glm::vec3& impulse) {
     // momentum directly
-    P_t += strength * impulse;
+    P_t += impulse_mag * impulse;
 }
 
-void RigidBody::applyReaction() {
-    v *= -restitution;
+void RigidBody::applyReaction(const Contact& contact) {
+    // reflect velocity about collision normal
+    v = glm::reflect(v, contact.n);
+
+    // apply restitution
+    v *= restitution;
 
     // dampen velocity on impact
     v *= 0.9f;
 
-    // new linear momentum to match new velocity
+    // update linear momentum to match new velocity
     P_t = M * v;
 
     // reduce spin on impact
     L_t *= 0.95f;
+
+    // apply torque at contact point
+    torque += glm::cross(contact.p - x_t, M * g);
 }
 
 // Baraff equation (5-3)

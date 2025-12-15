@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include "physics/collision.h"
 #include "utils/scenedata.h"
 #include "physics/box.h"
 
@@ -13,8 +14,6 @@ public:
     RigidBody(PrimitiveType shapeType, const glm::mat4& initCtm, const Box& box);
 
     void reset();
-
-    void reset(const glm::mat4& initCtm);
 
     glm::mat4 getCtm() const;
 
@@ -28,13 +27,13 @@ public:
 
     void integrate(float dt);
 
-    void applyReaction();
+    void applyReaction(const Contact& contact);
 
 private:
     PrimitiveType type;
 
     // constant vars
-    float M = 1.f;                     // m
+    float M = 1.f;                        // mass
     glm::mat3 Ibody{1.f};                 // inertia tensor
     glm::mat3 IbodyInv{1.f};              // inverse of inertia tensor
 
@@ -44,8 +43,8 @@ private:
     glm::vec3 P_t{0.f};                   // linear momentum P(t)
     glm::vec3 L_t{0.f};                   // angular momentum L(t)
 
-    // derived vars
-    glm::mat4 R{1.f};                   // rotation matrix (from quaternion)
+    // derived (auxiliary) vars
+    glm::mat4 R{1.f};                     // rotation matrix (from quaternion)
     glm::vec3 v{0.f};                     // linear velocity v(t) = P(t) / M
     glm::vec3 omega{0.f};                 // angular velocity
 
@@ -56,20 +55,18 @@ private:
     glm::mat4 ctm{1.f};
     glm::vec3 scale{0.f};
 
-    float restitution = 0.5f;             // bounce factor
-
     void computeAuxiliaryVariables();
-
-    void applyForceAtPoint(const glm::vec3& point);
 
     glm::mat3 computeCubeInertia(const glm::vec3& dim);
     glm::mat3 computeSphereInertia(float r);
     glm::mat3 computeCylinderInertia(float r, float h);
     glm::mat3 computeConeInertia(float r, float h);
 
-    constexpr static float strength = 20.f;
-    constexpr static float density = 0.7f;
-    constexpr static glm::vec3 gravity{0.f, -9.8f, 0.f};
+    constexpr static float restitution = 0.6f;
+    constexpr static float impulse_mag = 20.f;
+    constexpr static float torque_mag = 100.f;
+    constexpr static float rho = 0.7f;
+    constexpr static glm::vec3 g{0.f, -9.8f, 0.f};
 };
 
 #endif // RIGIDBODY_H

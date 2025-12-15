@@ -4,6 +4,11 @@
 #include "box.h"
 #include "utils/sceneparser.h"
 
+struct Contact {
+    glm::vec3 p{0.f};
+    glm::vec3 n{0.f};
+};
+
 class Collision
 {
 public:
@@ -11,13 +16,11 @@ public:
 
     Collision(const RenderShapeData& shape);
 
-    const PrimitiveType getType() const;
-
     const Box& getBox() const;
 
     void updateBox(const glm::mat4& ctm);
 
-    bool detect(const Collision& that) const;
+    std::optional<Contact> detect(const Collision& that) const;
 
     void scaleBox(float factor);
 
@@ -32,8 +35,8 @@ private:
     // world space AABB
     Box box;
 
-    bool boxBox(const Box& b0, const Box& b1) const;
-    bool cubeBox(const Collision& cube, const Box& box) const;
+    std::optional<Contact> cubeBox(const Collision& cube, const Box& box) const;
+    std::optional<Contact> boxBox(const Box& b0, const Box& b1) const;
 };
 
 #endif // COLLISION_H

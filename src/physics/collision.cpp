@@ -29,11 +29,8 @@ Collision::Collision(const RenderShapeData& shape)
         max = {x_max, y_max, z_max};
     }
 
+    // construct bounding box
     updateBox(shape.ctm);
-}
-
-const PrimitiveType Collision::getType() const {
-    return type;
 }
 
 const Box& Collision::getBox() const {
@@ -49,13 +46,15 @@ void Collision::scaleBox(float factor) {
 
 void Collision::updateBox(const glm::mat4& ctm) {
     center = ctm[3];
+
     height = {
         glm::length(glm::vec3{ctm[0]}),
         glm::length(glm::vec3{ctm[1]}),
         glm::length(glm::vec3{ctm[2]})
     };
+
     // scale unit radius of 0.5f by ctm factor
-    radius = height[0] * 0.5f;
+    radius = 0.5f * height.x;
 
     if (type == PrimitiveType::PRIMITIVE_MESH) {
         // NOTE: ignore rotation to maintain axis alignment
@@ -70,12 +69,12 @@ void Collision::updateBox(const glm::mat4& ctm) {
     }
 }
 
-bool Collision::detect(const Collision& that) const {
-    // sphere-sphere
-    if (this->type == PrimitiveType::PRIMITIVE_SPHERE && that.type == PrimitiveType::PRIMITIVE_SPHERE ||
-        that.type == PrimitiveType::PRIMITIVE_SPHERE && this->type == PrimitiveType::PRIMITIVE_SPHERE) {
-        return glm::distance(center, that.center) < (radius + that.radius);
-    }
+std::optional<Contact> Collision::detect(const Collision& that) const {
+    // // sphere-sphere
+    // if (this->type == PrimitiveType::PRIMITIVE_SPHERE && that.type == PrimitiveType::PRIMITIVE_SPHERE ||
+    //     that.type == PrimitiveType::PRIMITIVE_SPHERE && this->type == PrimitiveType::PRIMITIVE_SPHERE) {
+    //     return glm::distance(center, that.center) < (radius + that.radius);
+    // }
 
     // box-box
     if (this->type == PrimitiveType::PRIMITIVE_MESH && that.type == PrimitiveType::PRIMITIVE_MESH) {
@@ -87,33 +86,58 @@ bool Collision::detect(const Collision& that) const {
 
     // cube-box
     if (this->type == PrimitiveType::PRIMITIVE_CUBE && that.type == PrimitiveType::PRIMITIVE_MESH) {
+        // this = cube, that = box
         return cubeBox(*this, that.getBox());
     }
-    if (this->type == PrimitiveType::PRIMITIVE_MESH && that.type == PrimitiveType::PRIMITIVE_CUBE) {
+    if (that.type == PrimitiveType::PRIMITIVE_CUBE && this->type == PrimitiveType::PRIMITIVE_MESH) {
+        // that = cube, this = box
         return cubeBox(that, this->getBox());
     }
 
-    return false;
+    return std::nullopt;
 }
 
-bool Collision::cubeBox(const Collision& cube, const Box& box) const {
+std::optional<Contact> Collision::cubeBox(const Collision& cube, const Box& box) const {
     // NOTE: assume cube is axis-aligned
-    Box cubeBox;
-
-    for (int i = 0; i < 3; ++i) {
-        cubeBox.min[i] = cube.center[i] - cube.height[i] / 2;
-        cubeBox.max[i] = cube.center[i] + cube.height[i] / 2;
-    }
+    Box cubeBox {
+        cube.center - cube.height * 0.5f,
+        cube.center + cube.height * 0.5f
+    };
 
     return boxBox(cubeBox, box);
 }
 
-bool Collision::boxBox(const Box& b0, const Box& b1) const {
+std::optional<Contact> Collision::boxBox(const Box& b0, const Box& b1) const {
+    Contact contact;
+
+    // Init collision axis
+    int axis = 0;
+
+    // Init overlap to max
+    float init, overlap = std::numeric_limits<float>::max();
+
+    // For each bounding box axis
     for (int i = 0; i < 3; ++i) {
+        // Return null if no overlap
         if (b0.max[i] < b1.min[i] || b1.max[i] < b0.min[i]) {
-            return false;
+            return std::nullopt;
         }
+
+        // Set initial overlap value
+        init = overlap;
+
+        // Get minimum overlap value
+        overlap = fmin(overlap, fmin(b0.max[i], b1.max[i]) - fmax(b0.min[i], b1.min[i]));
+
+        // If overlap changed, set axis value
+        if (init != overlap) axis = i;
     }
 
-    return true;
+    // Set contact point to overlap midpoints
+    contact.p = (glm::min(b0.max, b1.max) + glm::max(b0.min, b1.min)) * 0.5f;
+
+    // Set normal direction to collision axis
+    contact.n[axis] = b0.max[axis] < b1.max[axis] ? -1.f : 1.f;
+
+    return contact;
 }
