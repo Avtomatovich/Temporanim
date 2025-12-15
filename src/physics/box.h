@@ -6,6 +6,10 @@
 struct Box {
     glm::vec3 min{0.f};
     glm::vec3 max{0.f};
+
+    glm::vec3 side() const {
+        return max - min;
+    }
 };
 
 #endif // BOX_H

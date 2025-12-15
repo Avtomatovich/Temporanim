@@ -101,9 +101,7 @@ void Scene::initPhys(const RenderShapeData& shape, int i) {
 
     // Add rigid body to phys map if dynamic
     if (shape.primitive.isDynamic) {
-        // Use default mass of 1.f
         m_physMap.emplace(i, RigidBody{shape.primitive.type,
-                                       1.f,
                                        shape.ctm,
                                        m_collMap.at(i).getBox()});
     }
@@ -302,7 +300,7 @@ void Scene::spawn() {
 
     // Translate shape to camera location
     glm::vec3 camPos = m_cam.getPos();
-    shape.ctm[3] = glm::vec4{camPos.x, camPos.y - 1, camPos.z, 1.f};
+    shape.ctm[3] = glm::vec4{camPos.x, camPos.y - 0.5f, camPos.z, 1.f};
     shape.ctmInv = glm::inverse(shape.ctm);
 
     // Init key for maps

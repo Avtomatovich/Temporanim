@@ -11,6 +11,7 @@
   - [x] cube-box (for floors and walls)
   - [x] add rigid body logic to meshes
   - [x] collision loop
+  - [ ] compute reaction forces
   - [ ] update character AABBs for animated models
 - [x] gather assets + animations
   - [x] find and add better brick texture with normal mapping
@@ -28,6 +29,6 @@
   - [x] add despawn logic
   - [x] add rotation to initial throw
 - [ ] fix physics bugs
-  - [ ] set mass using constant density val and computed volume
+  - [x] set mass using constant density val and computed volume
   - [x] regulate bouncing
   - [ ] fix sinking mesh issue

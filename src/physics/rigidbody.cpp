@@ -2,29 +2,39 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-RigidBody::RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initCtm, const Box& box)
-    : type(shapeType), mass(m), ctm(initCtm)
+RigidBody::RigidBody(PrimitiveType shapeType, const glm::mat4& initCtm, const Box& box)
+    : type(shapeType), ctm(initCtm)
 {
     // TODO: compute mass using constant density factor and computed volume
     reset();
 
-    // inertia tensor based on shape type
+    // Precompute radius and bounding box sides
+    float r = 0.5f * scale.x;
+    glm::vec3 side = box.side();
+
+    // mass and inertia tensor based on shape type
     switch (type) {
         case PrimitiveType::PRIMITIVE_CUBE:
-            Ibody = computeCubeInertia(mass, scale);
+            M = density * (scale.x * scale.y * scale.z);
+            Ibody = computeCubeInertia(scale);
             break;
         case PrimitiveType::PRIMITIVE_SPHERE:
-            Ibody = computeSphereInertia(mass, 0.5f * scale.x);
+            M = density * ((4.f / 3.f) * M_PI * r*r*r);
+            Ibody = computeSphereInertia(r);
             break;
         case PrimitiveType::PRIMITIVE_CYLINDER:
-            Ibody = computeCylinderInertia(mass, 0.5f * scale.x, scale.y);
+            M = density * (M_PI * r*r * scale.y);
+            Ibody = computeCylinderInertia(r, scale.y);
             break;
         case PrimitiveType::PRIMITIVE_CONE:
-            Ibody = computeConeInertia(mass, 0.5f * scale.x, scale.y);
+            M = density * ((1.f / 3.f) * M_PI * r*r * scale.y);
+            Ibody = computeConeInertia(r, scale.y);
             break;
         case PrimitiveType::PRIMITIVE_MESH:
-            Ibody = computeCubeInertia(mass, box.max - box.min);
+            M = density * (side.x * side.y * side.z);
+            Ibody = computeCubeInertia(side);
         default:
+            M = density;
             Ibody = glm::mat3(1.f);
             break;
     }
@@ -74,7 +84,7 @@ glm::mat4 RigidBody::getCtm() const {
 
 void RigidBody::computeAuxiliaryVariables() {
     // v(t) = P(t) / M
-    v = P_t / mass;
+    v = P_t / M;
 
     // quaternion to rotation matrix: R(t) = matrix(q(t))
     q_t = glm::normalize(q_t);
@@ -112,7 +122,7 @@ void RigidBody::clearForces() {
 }
 
 void RigidBody::applyForce() {
-    force += mass * gravity;
+    force += M * gravity;
 }
 
 void RigidBody::applyTorque(const glm::vec3& axis) {
@@ -123,7 +133,7 @@ void RigidBody::applyForceAtPoint(const glm::vec3& point) {
     applyForce();
 
     // torque
-    torque += glm::cross(point - x_t, mass * gravity);
+    torque += glm::cross(point - x_t, M * gravity);
 }
 
 void RigidBody::applyImpulse(const glm::vec3& impulse) {
@@ -138,14 +148,14 @@ void RigidBody::applyReaction() {
     v *= 0.9f;
 
     // new linear momentum to match new velocity
-    P_t = mass * v;
+    P_t = M * v;
 
     // reduce spin on impact
     L_t *= 0.95f;
 }
 
 // Baraff equation (5-3)
-glm::mat3 RigidBody::computeCubeInertia(float M, const glm::vec3& dim) {
+glm::mat3 RigidBody::computeCubeInertia(const glm::vec3& dim) {
     float w = dim.x, h = dim.y, d = dim.z;
     return glm::scale(glm::mat4{1.f}, {
                                           M / 12.f * (h*h + d*d),
@@ -155,9 +165,8 @@ glm::mat3 RigidBody::computeCubeInertia(float M, const glm::vec3& dim) {
 }
 
 // Inertia tensor for a sphere
-glm::mat3 RigidBody::computeSphereInertia(float M, float r) {
+glm::mat3 RigidBody::computeSphereInertia(float r) {
     float I = (2.f / 5.f) * M * r*r;
-
     return {
         I,   0.f, 0.f,
         0.f, I,   0.f,
@@ -166,10 +175,9 @@ glm::mat3 RigidBody::computeSphereInertia(float M, float r) {
 }
 
 // Inertia tensor for a cylinder along Y axis
-glm::mat3 RigidBody::computeCylinderInertia(float M, float r, float h) {
+glm::mat3 RigidBody::computeCylinderInertia(float r, float h) {
     float Ixx = M * (3 * r*r + h*h) / 12.f;
     float Iyy = M * r*r / 2.f;
-
     return {
         Ixx, 0.f, 0.f,
         0.f, Iyy, 0.f,
@@ -178,10 +186,9 @@ glm::mat3 RigidBody::computeCylinderInertia(float M, float r, float h) {
 }
 
 // Inertia tensor for a cone along Y axis
-glm::mat3 RigidBody::computeConeInertia(float M, float r, float h) {
+glm::mat3 RigidBody::computeConeInertia(float r, float h) {
     float Ixx = M * (3 * r*r / 20.f + h*h / 10.f);
     float Iyy = 3 * M * r*r / 10.f;
-
     return {
         Ixx, 0.f, 0.f,
         0.f, Iyy, 0.f,

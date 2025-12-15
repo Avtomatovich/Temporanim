@@ -10,7 +10,7 @@ class RigidBody {
 public:
     RigidBody() {}
 
-    RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initCtm, const Box& box);
+    RigidBody(PrimitiveType shapeType, const glm::mat4& initCtm, const Box& box);
 
     void reset();
 
@@ -34,7 +34,7 @@ private:
     PrimitiveType type;
 
     // constant vars
-    float mass = 1.f;                     // m
+    float M = 1.f;                     // m
     glm::mat3 Ibody{1.f};                 // inertia tensor
     glm::mat3 IbodyInv{1.f};              // inverse of inertia tensor
 
@@ -62,12 +62,13 @@ private:
 
     void applyForceAtPoint(const glm::vec3& point);
 
-    glm::mat3 computeCubeInertia(float M, const glm::vec3& dim);
-    glm::mat3 computeSphereInertia(float M, float r);
-    glm::mat3 computeCylinderInertia(float M, float r, float h);
-    glm::mat3 computeConeInertia(float M, float r, float h);
+    glm::mat3 computeCubeInertia(const glm::vec3& dim);
+    glm::mat3 computeSphereInertia(float r);
+    glm::mat3 computeCylinderInertia(float r, float h);
+    glm::mat3 computeConeInertia(float r, float h);
 
     constexpr static float strength = 20.f;
+    constexpr static float density = 0.7f;
     constexpr static glm::vec3 gravity{0.f, -9.8f, 0.f};
 };
 
