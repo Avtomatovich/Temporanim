@@ -248,7 +248,7 @@ void Scene::updatePhys(float dt) {
 
                 // if collision detected
                 if (affector.detect(affectee)) {
-                    // std::cout << "collision detected" << std::endl;
+                    std::cout << "collision detected" << std::endl;
 
                     // determine reaction forces
                     m_physMap.at(rid).applyReaction();

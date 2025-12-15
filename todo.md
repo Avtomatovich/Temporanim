@@ -15,7 +15,7 @@
 - [ ] add logic for character hit animation
   - [ ] gather assets + animations
     - [x] find and add better brick texture with normal mapping
-    - [ ] handle odd lighting of gltf meshes
+    - [x] handle odd lighting of gltf meshes
 - [x] find, add, test fruit/veg models (_mesh_)
   - [x] sweet potato
   - [x] cabbage
