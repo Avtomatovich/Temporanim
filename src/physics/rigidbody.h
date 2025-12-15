@@ -8,6 +8,8 @@
 
 class RigidBody {
 public:
+    RigidBody() {}
+
     RigidBody(PrimitiveType shapeType, float m, const glm::mat4& initCtm, const Box& box);
 
     void reset();
@@ -54,7 +56,7 @@ private:
     glm::mat4 ctm{1.f};
     glm::vec3 scale{0.f};
 
-    float restitution = 0.7f;             // bounciness factor
+    float restitution = 0.5f;             // bounce factor
 
     void computeAuxiliaryVariables();
 

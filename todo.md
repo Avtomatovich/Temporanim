@@ -26,8 +26,9 @@
   - [x] add spawn logic
     - [x] fix performance issue
   - [x] add throwing logic
-  - [ ] add despawn logic
+  - [x] add despawn logic
+  - [ ] add rotation to throw
 - [ ] fix physics bugs
   - [ ] set mass using constant density val and computed volume
-  - [ ] regulate bouncing
+  - [x] regulate bouncing
   - [ ] fix sinking mesh issue

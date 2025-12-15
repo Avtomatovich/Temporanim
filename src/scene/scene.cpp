@@ -231,19 +231,27 @@ void Scene::updatePhys(float dt) {
         for (auto& [rid, rb] : m_physMap) m_collMap.at(rid).updateBox(rb.getCtm());
 
         // for each dynamic object
-        for (auto& [rid, rb] : m_physMap) {
+        for (int rid = 0; rid < m_shapes.size(); rid++) {
+            // skip if key does not exist in physics map
+            if (!m_physMap.contains(rid)) continue;
+
+            // fetch applicant of collision
             Collision& affector = m_collMap.at(rid);
+
             // check each collision object (static + dynamic)
-            for (const auto& [cid, affectee] : m_collMap) {
+            for (int cid = 0; cid < m_shapes.size(); cid++) {
+                // fetch recipient of collision
+                const Collision& affectee = m_collMap.at(cid);
+
                 // skip self and previously collided dynamics
                 if (cid == rid || (m_physMap.contains(cid) && cid <= rid)) continue;              
 
                 // if collision detected
                 if (affector.detect(affectee)) {
-                    std::cout << "collision detected" << std::endl;
+                    // std::cout << "collision detected" << std::endl;
 
                     // determine reaction forces
-                    rb.applyReaction();
+                    m_physMap.at(rid).applyReaction();
 
                     // determine affectee's reaction forces if affectee is dynamic
                     if (m_physMap.contains(cid)) m_physMap.at(cid).applyReaction();
@@ -267,8 +275,8 @@ void Scene::loadProjectiles(const Projectile& projectiles) {
 void Scene::spawn() {
     if (!m_projectiles) return;
 
-    // TODO: Despawn shape if count exceeds capping value
-    // if (m_numProjectiles > MAX_PROJECTILES) despawn();
+    // Despawn shape if count exceeds capping value
+    if (m_numProjectiles >= MAX_PROJECTILES) despawn();
 
     // Fetch random shape from list of projectile shapes
     RenderShapeData shape = m_projectiles->spawn();
@@ -300,17 +308,17 @@ void Scene::spawn() {
 void Scene::despawn() {
     if (m_numProjectiles <= 0) return;
 
-    // TODO: update m_physMap
-
-    // Shift all projectiles in collision map one step back
+    // Shift all projectiles in maps one step backwards
     for (int i = m_projectileFront + 1; i < m_shapes.size(); ++i) {
-        m_collMap.emplace(i - 1, m_collMap.at(i));
+        m_physMap[i - 1] = m_physMap.at(i);
+        m_collMap[i - 1] = m_collMap.at(i);
     }
 
-    // Remove final entry in collision maps
+    // Remove stale projectile from maps
+    m_physMap.erase(m_shapes.size() - 1);
     m_collMap.erase(m_shapes.size() - 1);
 
-    // Remove first projectile instance from shape list
+    // Remove first projectile from shape list
     m_shapes.erase(m_shapes.begin() + m_projectileFront);
 
     // Decrement projectile count

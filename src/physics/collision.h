@@ -7,6 +7,8 @@
 class Collision
 {
 public:
+    Collision() {}
+
     Collision(const RenderShapeData& shape);
 
     const PrimitiveType getType() const;
