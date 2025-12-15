@@ -7,6 +7,7 @@
 struct Contact {
     glm::vec3 p{0.f};
     glm::vec3 n{0.f};
+    float overlap;
 };
 
 class Collision

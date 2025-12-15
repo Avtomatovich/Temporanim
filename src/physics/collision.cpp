@@ -60,7 +60,7 @@ void Collision::updateBox(const glm::mat4& ctm) {
         // NOTE: ignore rotation to maintain axis alignment
         glm::mat4 T = glm::translate(glm::mat4{1.f}, center);
         glm::mat4 S = glm::scale(glm::mat4{1.f}, height);
-        
+
         // convert from object space to world space
         box = Box{
             T * S * glm::vec4{min, 1.f},
@@ -136,8 +136,11 @@ std::optional<Contact> Collision::boxBox(const Box& b0, const Box& b1) const {
     // Set contact point to overlap midpoints
     contact.p = (glm::min(b0.max, b1.max) + glm::max(b0.min, b1.min)) * 0.5f;
 
-    // Set normal direction to collision axis
-    contact.n[axis] = b0.max[axis] < b1.max[axis] ? -1.f : 1.f;
+    // Set normal to collision axis and negate based on bounding box locations
+    contact.n[axis] = ((b0.min + b0.max) * 0.5f)[axis] < ((b1.min + b1.max) * 0.5f)[axis] ? 1.f : -1.f;
+
+    // Store overlap factor
+    contact.overlap = overlap;
 
     return contact;
 }

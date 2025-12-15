@@ -4,7 +4,7 @@
 - [x] verify physics integration
 - [x] create + edit demo vid
 
-- [ ] add collision logic
+- [x] add collision logic
   - [x] enclose meshes in AABBs for collisions
   - [x] sphere-sphere
   - [x] box-box
@@ -12,7 +12,7 @@
   - [x] add rigid body logic to meshes
   - [x] collision loop
   - [x] compute reaction forces
-  - [ ] update AABBs for animated models
+- [ ] ~~update AABBs for animated models~~
 - [x] gather assets + animations
   - [x] find and add better brick texture with normal mapping
   - [x] handle odd lighting of gltf meshes
@@ -28,7 +28,7 @@
   - [x] add throwing logic
   - [x] add despawn logic
   - [x] add rotation to initial throw
-- [ ] fix physics bugs
+- [x] fix physics bugs
   - [x] set mass using constant density val and computed volume
   - [x] regulate bouncing
-  - [ ] fix collision inconsistencies
+  - [x] fix collision inconsistencies

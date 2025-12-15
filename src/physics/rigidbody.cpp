@@ -131,6 +131,9 @@ void RigidBody::applyImpulse(const glm::vec3& impulse) {
 }
 
 void RigidBody::applyReaction(const Contact& contact) {
+    // offset position away from collision
+    x_t += contact.n * contact.overlap;
+
     // reflect velocity about collision normal
     v = glm::reflect(v, contact.n);
 
@@ -148,6 +151,10 @@ void RigidBody::applyReaction(const Contact& contact) {
 
     // apply torque at contact point
     torque += glm::cross(contact.p - x_t, M * g);
+}
+
+bool RigidBody::atRest() {
+    return fabs(glm::length(v)) <= EPS;
 }
 
 // Baraff equation (5-3)

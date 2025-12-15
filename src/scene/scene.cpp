@@ -217,8 +217,13 @@ void Scene::updatePhys(float dt) {
     // torque
     if (m_torqueEnabled) {
         if (m_currProjectile >= 0) {
+            RigidBody& rb = m_physMap.at(m_currProjectile);
+
+            // stop adding torque if rigid body is at rest
+            if (rb.atRest()) m_currProjectile = -1;
+
             std::uniform_real_distribution<float> axes{-10.f, 10.f};
-            m_physMap.at(m_currProjectile).applyTorque({axes(gen), axes(gen), axes(gen)});
+            rb.applyTorque({axes(gen), axes(gen), axes(gen)});
         }
     }
 

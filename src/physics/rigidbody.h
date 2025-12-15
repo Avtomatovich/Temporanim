@@ -29,6 +29,8 @@ public:
 
     void applyReaction(const Contact& contact);
 
+    bool atRest();
+
 private:
     PrimitiveType type;
 
@@ -67,6 +69,7 @@ private:
     constexpr static float torque_mag = 100.f;
     constexpr static float rho = 0.7f;
     constexpr static glm::vec3 g{0.f, -9.8f, 0.f};
+    constexpr static float EPS = 1e-6f;
 };
 
 #endif // RIGIDBODY_H
