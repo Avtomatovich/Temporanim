@@ -24,7 +24,21 @@ It also includes tessellation support for primitives and key-based interactivity
 
 ## Media Samples
 
+### Demonstrating Normal Maps and Toggling
 
+![temporanim_normal_map](https://github.com/user-attachments/assets/f9974e10-616b-43ba-9257-bea3b6fc83f6)
+
+### Demonstrating Animation Controls
+
+![temporanim_heraklios](https://github.com/user-attachments/assets/17a1c607-2641-4e7d-a279-34d716d13c01)
+
+### Demonstrating Gravitational Effects
+
+![temporanim_gravity](https://github.com/user-attachments/assets/a86693c0-e7fc-490f-ae51-739f079add67)
+
+### Demonstrating Camera Movement and Projectile Simulation with Physics
+
+![temporanim_projectile_optimized](https://github.com/user-attachments/assets/f1adfa53-1227-4893-a83c-0fc69e4c0853)
 
 ## Controls
 
