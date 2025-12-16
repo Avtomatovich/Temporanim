@@ -19,7 +19,7 @@
         {
           "color": [0.9, 0.75, 0.25],
           "type": "point",
-          "attenuationCoeff": [1, 0, 0]
+          "attenuationCoeff": [0.1, 0.6, 0]
         }
       ],
       "translate": [-3, 5, -3]
@@ -39,7 +39,7 @@
       "name": "Spot Light",
       "lights": [
         {
-          "color": [1, 1, 1],
+          "color": [0.8, 0.8, 0.8],
           "type": "directional",
           "direction": [-3, -2, -1],
           "penumbra": 30,
@@ -74,8 +74,8 @@
           "type": "cube",
           "textureFile": "textures/bricks.jpg",
           "blend": 1.0,
-          "textureU": 5.0,
-          "textureV": 5.0
+          "textureU": 3.0,
+          "textureV": 3.0
         }
       ],
       "translate": [5, 2.5, 0],
@@ -92,8 +92,8 @@
           "type": "cube",
           "textureFile": "textures/bricks.jpg",
           "blend": 1.0,
-          "textureU": 5.0,
-          "textureV": 5.0
+          "textureU": 3.0,
+          "textureV": 3.0
         }
       ],
       "translate": [-5, 2.5, 0],
@@ -110,8 +110,8 @@
           "type": "cube",
           "textureFile": "textures/bricks.jpg",
           "blend": 1.0,
-          "textureU": 5.0,
-          "textureV": 5.0
+          "textureU": 3.0,
+          "textureV": 3.0
         }
       ],
       "translate": [0, 2.5, -5],

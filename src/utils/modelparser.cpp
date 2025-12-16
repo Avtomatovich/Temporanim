@@ -117,7 +117,7 @@ namespace ModelParser {
         }
     }
 
-    void updateTexture(aiMaterial* mtl, aiTextureType type, RenderShapeData& shape) {
+    bool updateTexture(aiMaterial* mtl, aiTextureType type, RenderShapeData& shape) {
         const std::string& meshfile = shape.primitive.meshfile;
         aiString filename;
         SceneFileMap& map = type == aiTextureType_DIFFUSE ?
@@ -126,11 +126,6 @@ namespace ModelParser {
 
         // Fetch meshfile path (assume meshfile has its own dir)
         fs::path meshpath = fs::path(meshfile);
-
-        // If file type is obj, and texture type is normal, set to height map
-        if (meshpath.extension().string() == ".obj") {
-            if (type == aiTextureType_NORMALS) type = aiTextureType_HEIGHT;
-        }
 
         if (aiGetMaterialTexture(mtl, type, 0, &filename) == AI_SUCCESS) {
             std::cout << "Fetched texture file name: " << filename.C_Str() << std::endl;
@@ -142,35 +137,29 @@ namespace ModelParser {
             fs::path parent = meshpath.parent_path();
 
             // Build possible texture file path
-            fs::path filepath {parent / fs::path(filename.C_Str())};
+            fs::path filepath = parent / fs::path(filename.C_Str());
 
             // Mark texture as used and assign absolute path if present
             if (fs::exists(filepath)) {
                 map.isUsed = true;
                 map.filename = filepath.string();
-                return;
+                return true;
             }
 
             // Recurse over files in meshfile dir
             for (const auto& dir : fs::recursive_directory_iterator{parent}) {
                 // Check if dir is regular file and matches filename
                 if (dir.is_regular_file() && dir.path().filename().string() == filename.C_Str()) {
-                    // Mark texture as used, assign absolute path, break
+                    // Mark texture as used, assign absolute path
                     map.isUsed = true;
                     map.filename = dir.path().string();
-                    break;
+                    return true;
                 }
-            }
-
-            // Throw exception if file is not found
-            if (map.filename.empty()) {
-                std::cerr << "Missing texture file: " << filename.C_Str() << std::endl;
-                throw std::runtime_error("Failed to find texture file in mesh dir");
             }
 
         } else std::cerr << "Failed to load texture file path from mesh file: " << meshfile << std::endl;
 
-        std::cout << std::endl;
+        return false;
     }
 
     void updateMaterial(aiMaterial* mtl, RenderShapeData& shape) {
@@ -207,7 +196,16 @@ namespace ModelParser {
         updateTexture(mtl, aiTextureType_DIFFUSE, shape);
 
         // Update normal map
-        updateTexture(mtl, aiTextureType_NORMALS, shape);
+        if (!updateTexture(mtl, aiTextureType_NORMALS, shape)) {
+            if (!updateTexture(mtl, aiTextureType_DISPLACEMENT, shape)) {
+                if (!updateTexture(mtl, aiTextureType_HEIGHT, shape)) {
+                    std::cerr << "Failed to detect normal map texture file" << std::endl;
+                }
+            }
+        }
+
+        std::cout << std::endl;
+        
     }
 
     void buildMeshData(RenderData& renderData,

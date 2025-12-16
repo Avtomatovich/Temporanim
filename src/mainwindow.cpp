@@ -24,9 +24,9 @@ void MainWindow::initialize() {
     QFont font;
     font.setPointSize(12);
     font.setBold(true);
-    QLabel *tesselation_label = new QLabel(); // Parameters label
-    tesselation_label->setText("Tesselation");
-    tesselation_label->setFont(font);
+    QLabel *tessellation_label = new QLabel(); // Parameters label
+    tessellation_label->setText("Tessellation");
+    tessellation_label->setFont(font);
     QLabel *camera_label = new QLabel(); // Camera label
     camera_label->setText("Camera");
     camera_label->setFont(font);
@@ -165,7 +165,7 @@ void MainWindow::initialize() {
 
     vLayout->addWidget(uploadFile);
     vLayout->addWidget(saveImage);
-    vLayout->addWidget(tesselation_label);
+    vLayout->addWidget(tessellation_label);
     vLayout->addWidget(param1_label);
     vLayout->addWidget(p1Layout);
     vLayout->addWidget(param2_label);
@@ -190,7 +190,7 @@ void MainWindow::initialize() {
 
     connectUIElements();
 
-    // Set default values of 5 for tesselation parameters
+    // Set default values of 5 for tessellation parameters
     onValChangeP1(5);
     onValChangeP2(5);
 

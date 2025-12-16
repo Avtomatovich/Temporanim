@@ -10,7 +10,7 @@ namespace ModelParser {
 
     void updateBoneHierarchy(const aiScene* scene, AnimData& animData);
 
-    void updateTexture(aiMaterial* mtl, RenderShapeData& shape);
+    bool updateTexture(aiMaterial* mtl, RenderShapeData& shape);
 
     void updateMaterial(aiMaterial* mtl, RenderShapeData& shape);
 
