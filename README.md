@@ -30,7 +30,7 @@ It also includes tessellation support for primitives and key-based interactivity
 
 ### Demonstrating Animation Controls
 
-![temporanim_heraklios](https://github.com/user-attachments/assets/17a1c607-2641-4e7d-a279-34d716d13c01)
+![temporanim_heraklios](https://github.com/user-attachments/assets/3bd38f97-eaf0-4222-93fe-157e9e622272)
 
 ### Demonstrating Gravitational Effects
 
